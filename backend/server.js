@@ -7,6 +7,7 @@ const MongoStore = require("connect-mongo").default;
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 
 const Admin = require("./models/Admin");
 const Student = require("./models/Student");
@@ -45,10 +46,12 @@ if (
 }
 
 const allowedOrigins = [
-  process.env.FRONTEND_ORIGIN || "http://localhost:5500",
+  process.env.FRONTEND_ORIGIN,
+  "https://letstalkbgp.com",
+  "https://www.letstalkbgp.com",
   "http://localhost:5500",
   "http://127.0.0.1:5500",
-];
+].filter(Boolean);
 
 app.use(
   cors({
@@ -215,9 +218,49 @@ function courseFields(body) {
 // -------------------- BASIC ROUTES --------------------
 // -------------------- FRONTEND STATIC FILES --------------------
 
-const frontendPath = path.join(__dirname, "../lets-talk-english-site");
+// -------------------- FRONTEND STATIC FILES --------------------
 
-app.use(express.static(frontendPath));
+const frontendCandidates = [
+  path.join(__dirname, "..", "lets-talk-english-site"),
+  path.join(
+    process.env.HOME || "",
+    "domains",
+    "letstalkbgp.com",
+    "public_html",
+    "lets-talk-english-site"
+  ),
+  path.join(process.cwd(), "lets-talk-english-site"),
+];
+
+const frontendPath = frontendCandidates.find((directory) =>
+  fs.existsSync(path.join(directory, "index.html"))
+);
+
+if (frontendPath) {
+  console.log("Frontend directory found:", frontendPath);
+
+  app.use(express.static(frontendPath));
+
+  app.get("/", (req, res, next) => {
+    res.sendFile(
+      path.join(frontendPath, "index.html"),
+      (error) => {
+        if (error) next(error);
+      }
+    );
+  });
+} else {
+  console.error(
+    "Frontend index.html not found. Checked directories:",
+    frontendCandidates
+  );
+
+  app.get("/", (req, res) => {
+    res.status(503).send(
+      "Website files are temporarily unavailable."
+    );
+  });
+}
 
 // -------------------- BASIC ROUTES --------------------
 
