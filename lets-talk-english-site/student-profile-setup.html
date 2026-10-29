@@ -1,0 +1,309 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Profile Setup</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}
+header{background:white;padding:20px 6%;font-weight:bold;color:#2563eb;border-bottom:1px solid #e5eaf3}
+main{max-width:950px;margin:30px auto;padding:0 20px}
+.panel{background:white;padding:28px;border-radius:18px;border:1px solid #e5eaf3}
+h1{margin-top:0}
+p{color:#64748b;line-height:1.6}
+h3{margin:25px 0 15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field label{display:block;font-size:13px;font-weight:bold;margin-bottom:7px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #dbe2ee;border-radius:9px;font:inherit;background:white}
+textarea{min-height:80px;resize:vertical}
+.full{grid-column:1/-1}
+.photo{display:flex;align-items:center;gap:18px;margin-bottom:20px}
+.photo img{width:90px;height:90px;border-radius:50%;object-fit:cover;background:#dbeafe}
+hr{border:0;border-top:1px solid #e5eaf3;margin:25px 0}
+button{padding:13px 18px;border:0;border-radius:9px;font-weight:bold;cursor:pointer}
+.primary{background:#2563eb;color:white}
+.secondary{background:#e0e7ff;color:#1d4ed8;margin-left:8px}
+.message{color:#b91c1c;font-size:14px;margin-top:15px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.panel{padding:18px}.secondary{margin:10px 0 0}}
+</style>
+</head>
+<body>
+<header>LET'S TALK ENGLISH CLASS</header>
+<main>
+<h1>Complete Your Profile</h1>
+<p>Fill in your student details. After saving your profile, the dashboard will open.</p>
+
+<form id="profileForm" class="panel" enctype="multipart/form-data">
+<h3>Profile photo</h3>
+<div class="photo">
+<img id="preview" alt="Profile photo preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23dbeafe'/%3E%3C/svg%3E">
+<div class="field">
+<label for="profileImage">Upload photo (optional, max 2 MB)</label>
+Preview ready. Permanent saving requires the student photo upload API in your backend.
+</div>
+</div>
+
+<h3>Personal details</h3>
+<div class="grid">
+<div class="field"><label for="fullName">Full name *</label><input id="fullName" name="fullName" required maxlength="100"></div>
+<div class="field"><label for="dateOfBirth">Date of birth *</label><input id="dateOfBirth" name="dateOfBirth" type="date" required></div>
+<div class="field"><label for="gender">Gender *</label><select id="gender" name="gender" required><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option><option>Prefer not to say</option></select></div>
+<div class="field"><label for="phone">Phone number *</label><input id="phone" name="phone" type="tel" maxlength="20" required></div>
+<div class="field full"><label for="email">Email address</label><input id="email" name="email" type="email" readonly></div>
+</div>
+
+<hr>
+<h3>Address details</h3>
+<div class="grid">
+<div class="field full"><label for="address">Full address *</label><textarea id="address" name="address" required maxlength="300"></textarea></div>
+<div class="field"><label for="city">City</label><input id="city" name="city" maxlength="80"></div>
+<div class="field"><label for="state">State</label><input id="state" name="state" maxlength="80"></div>
+<div class="field"><label for="pinCode">PIN code</label><input id="pinCode" name="pinCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"></div>
+</div>
+
+<hr>
+<h3>Academic details</h3>
+<div class="grid">
+<div class="field"><label for="qualification">Qualification *</label><input id="qualification" name="qualification" required maxlength="100" placeholder="Class 11, Class 12, UG..."></div>
+<div class="field"><label for="schoolCollege">School / College *</label><input id="schoolCollege" name="schoolCollege" required maxlength="150"></div>
+<div class="field"><label for="course">Course *</label><select id="course" name="course" required><option value="">Select course</option><option>Class 11th English</option><option>Class 12th English</option><option>English Honours (UG)</option><option>English Honours (PG)</option><option>Spoken English Course</option><option>Other</option></select></div>
+<div class="field"><label for="session">Academic session</label><input id="session" name="session" maxlength="20" placeholder="2026-2027"></div>
+</div>
+
+<hr>
+<h3>Guardian details</h3>
+<div class="grid">
+<div class="field"><label for="guardianName">Guardian name</label><input id="guardianName" name="guardianName" maxlength="100"></div>
+<div class="field"><label for="guardianPhone">Guardian phone</label><input id="guardianPhone" name="guardianPhone" type="tel" maxlength="20"></div>
+</div>
+
+<div id="message" class="message" role="alert"></div>
+<p><button id="submitBtn" class="primary" type="submit">Save Profile & Open Dashboard</button><button id="logoutBtn" class="secondary" type="button">Log out</button></p>
+</form>
+</main>
+
+<script>
+
+const API = "http://127.0.0.1:5000/api/student";
+
+const form = document.getElementById("profileForm");
+const imageInput = document.getElementById("profileImage");
+const preview = document.getElementById("preview");
+const submitBtn = document.getElementById("submitBtn");
+const formError = document.getElementById("formError");
+const logoutBtn = document.getElementById("logoutBtn");
+
+let selectedPhoto = null;
+
+function showError(message) {
+  if (formError) {
+    formError.textContent = message;
+    formError.style.display = "block";
+  } else {
+    alert(message);
+  }
+}
+
+function clearError() {
+  if (formError) {
+    formError.textContent = "";
+    formError.style.display = "none";
+  }
+}
+
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: "include",
+    ...options
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || "Something went wrong.");
+  }
+
+  return data;
+}
+
+async function loadProfile() {
+  try {
+    const data = await apiRequest(`${API}/me`);
+
+    const student = data.student || data;
+
+    if (student.registrationCompleted) {
+      window.location.href = "student-dashboard.html";
+      return;
+    }
+
+    const fields = [
+      "fullName",
+      "dateOfBirth",
+      "gender",
+      "phone",
+      "email",
+      "address",
+      "city",
+      "state",
+      "pinCode",
+      "qualification",
+      "schoolCollege",
+      "course",
+      "session",
+      "guardianName",
+      "guardianPhone"
+    ];
+
+    fields.forEach((name) => {
+      const field = form.elements.namedItem(name);
+
+      if (field && student[name] != null) {
+        if (name === "dateOfBirth") {
+          field.value = String(student[name]).slice(0, 10);
+        } else {
+          field.value = student[name];
+        }
+      }
+    });
+
+    if (student.profileImage) {
+      preview.src = student.profileImage;
+      preview.style.display = "block";
+    }
+  } catch (error) {
+    if (
+      error.message.toLowerCase().includes("unauthorized") ||
+      error.message.toLowerCase().includes("login")
+    ) {
+      window.location.href = "student-login.html";
+      return;
+    }
+
+    showError(error.message);
+  }
+}
+
+imageInput.addEventListener("change", () => {
+  clearError();
+
+  const file = imageInput.files[0];
+
+  if (!file) {
+    selectedPhoto = null;
+    return;
+  }
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    showError("Please select a JPG, PNG, or WEBP image.");
+    imageInput.value = "";
+    selectedPhoto = null;
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    showError("Image size must be less than 2 MB.");
+    imageInput.value = "";
+    selectedPhoto = null;
+    return;
+  }
+
+  selectedPhoto = file;
+
+  const reader = new FileReader();
+
+  reader.onload = (event) => {
+    preview.src = event.target.result;
+    preview.style.display = "block";
+  };
+
+  reader.readAsDataURL(file);
+});
+
+async function uploadStudentPhoto(file) {
+  const formData = new FormData();
+
+  // Backend multer field ka naam "photo" hai.
+  formData.append("photo", file);
+
+  return apiRequest(`${API}/profile-photo`, {
+    method: "POST",
+    body: formData
+  });
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  clearError();
+
+  if (!form.reportValidity()) {
+    return;
+  }
+
+  submitBtn.disabled = true;
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = "Saving Profile...";
+
+  try {
+    const formData = new FormData(form);
+    const profile = Object.fromEntries(formData.entries());
+
+    // Photo separately Cloudinary par upload hogi.
+    delete profile.profileImage;
+
+    const registration = await apiRequest(
+      `${API}/complete-registration`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(profile)
+      }
+    );
+
+    if (selectedPhoto) {
+      submitBtn.textContent = "Uploading Photo...";
+
+      await uploadStudentPhoto(selectedPhoto);
+    }
+
+    alert(registration.message || "Profile saved successfully!");
+
+    window.location.href = "student-dashboard.html";
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+});
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      await apiRequest(`${API}/logout`, {
+        method: "POST"
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
+    window.location.href = "student-login.html";
+  });
+}
+
+loadProfile();
+
+
+</script>
+</body>
+</html>

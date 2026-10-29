@@ -1,0 +1,2264 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Let's Talk English Class</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./css/admin.css">
+
+  
+<style>
+  :root {
+    --blue: #4f46e5;
+    --blue-dark: #3730a3;
+    --dark: #172033;
+    --muted: #778197;
+    --border: #e7eaf1;
+    --background: #f5f7fc;
+    --white: #ffffff;
+    --green: #15803d;
+    --red: #dc2626;
+    --radius: 16px;
+    --shadow: 0 8px 28px rgba(25, 37, 66, .045);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 95px;
+  }
+
+  body {
+    margin: 0;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    background: var(--background);
+    color: var(--dark);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  button, input, select, textarea {
+    font: inherit;
+  }
+
+  button {
+    transition: background .2s ease, border-color .2s ease,
+      color .2s ease, box-shadow .2s ease, transform .2s ease;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* LOGIN SCREEN */
+  .login-wrapper {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(9, 20, 48, 0.78),
+      rgba(29, 45, 91, 0.58)
+    ),
+    url("./images/adminlogin.png") center / cover no-repeat,
+    #172554;
+}
+
+.login-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(99, 102, 241, 0.34),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(56, 189, 248, 0.22),
+      transparent 32%
+    );
+  pointer-events: none;
+}
+  .login-card {
+    width: 100%;
+    max-width: 440px;
+    padding: 38px;
+    border: 1px solid rgba(255,255,255,.9);
+    border-radius: 24px;
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 24px 80px rgba(34, 45, 90, .12);
+  }
+
+  .brand {
+    color: var(--blue);
+    font-size: 19px;
+    font-weight: 850;
+    letter-spacing: -.6px;
+  }
+
+  #loginHeading {
+    color: var(--dark);
+    letter-spacing: -.7px;
+  }
+
+  #loginForm .form-label,
+  #studentForm .form-label,
+  #courseForm .form-label,
+  #passwordForm .form-label,
+  #page-fees .form-label {
+    font-size: 13px;
+    font-weight: 650;
+    color: #39445a;
+    margin-bottom: 7px;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 260px;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 20;
+    overflow-y: auto;
+    padding: 25px 17px;
+    background: #151d33;
+    border-right: 1px solid rgba(255,255,255,.06);
+    color: #fff;
+    scrollbar-width: thin;
+    scrollbar-color: #39445f transparent;
+  }
+
+  .sidebar-brand {
+    padding: 7px 12px 25px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+
+  .sidebar .brand {
+    color: #fff;
+    font-size: 17px;
+  }
+
+  .sidebar .muted {
+    color: #a2aec5;
+    font-size: 12px;
+  }
+
+  .nav-item-custom {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 12px 14px;
+    margin: 5px 0;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    background: transparent;
+    color: #b9c3d7;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .nav-item-custom:hover {
+    color: #fff;
+    background: rgba(255,255,255,.07);
+  }
+
+  .nav-item-custom.active {
+    color: #fff;
+    background: linear-gradient(110deg, #4f46e5, #6258ef);
+    border-color: rgba(255,255,255,.1);
+    box-shadow: 0 5px 18px rgba(79,70,229,.25);
+  }
+
+  .sidebar hr {
+    border-color: rgba(255,255,255,.15);
+    margin: 23px 7px;
+  }
+
+  .sidebar #logoutButton {
+    color: #fca5a5;
+  }
+
+  .sidebar #logoutButton:hover {
+    background: rgba(239,68,68,.12);
+    color: #fecaca;
+  }
+
+  /* MAIN AREA */
+  .main {
+    min-height: 100vh;
+    margin-left: 260px;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: 82px;
+    padding: 17px 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: rgba(255,255,255,.94);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+  }
+
+  .topbar h1 {
+    font-size: 19px;
+    letter-spacing: -.5px;
+    color: var(--dark);
+  }
+
+  #adminName {
+    font-size: 13px;
+    color: var(--dark);
+  }
+
+  #adminEmail {
+    overflow-wrap: anywhere;
+  }
+
+  .content {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 32px;
+  }
+
+  .page-section > .mb-4 h2 {
+    font-size: 25px;
+    letter-spacing: -.8px;
+  }
+
+  .page-section > .mb-4 p {
+    margin-bottom: 0;
+  }
+
+  /* PANELS AND STAT CARDS */
+  .panel {
+    margin-bottom: 24px;
+    padding: 26px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--white);
+    box-shadow: var(--shadow);
+  }
+
+  .panel h2,
+  .panel h3 {
+    color: var(--dark);
+    letter-spacing: -.35px;
+  }
+
+  .page-section {
+    display: none;
+    animation: sectionIn .25s ease;
+  }
+
+  .page-section.active {
+    display: block;
+  }
+
+  @keyframes sectionIn {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .stat-card {
+    position: relative;
+    height: 100%;
+    min-height: 135px;
+    overflow: hidden;
+    padding: 23px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: var(--shadow);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(25,37,66,.08);
+  }
+
+  .stat-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: .15px;
+  }
+
+  .stat-value {
+    margin-top: 12px;
+    color: var(--dark);
+    font-size: clamp(24px, 2vw, 32px);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -1px;
+    overflow-wrap: anywhere;
+  }
+
+  /* FORMS */
+  .form-control,
+  .form-select {
+    min-height: 44px;
+    padding: 10px 13px;
+    border: 1px solid #dce2ed;
+    border-radius: 10px;
+    background-color: #fff;
+    color: var(--dark);
+    font-size: 13px;
+    box-shadow: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+
+  textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .form-control::placeholder {
+    color: #a1aabc;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+  }
+
+  /* BUTTONS */
+  .btn {
+    min-height: 39px;
+    padding: 9px 15px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 650;
+    transition: all .2s ease;
+  }
+
+  .btn-primary {
+    background: var(--blue);
+    border-color: var(--blue);
+    box-shadow: 0 3px 9px rgba(79,70,229,.12);
+  }
+
+  .btn-primary:hover {
+    background: var(--blue-dark);
+    border-color: var(--blue-dark);
+    box-shadow: 0 5px 14px rgba(79,70,229,.2);
+    transform: translateY(-1px);
+  }
+
+  .btn-outline-primary {
+    color: var(--blue);
+    border-color: #d8dcfa;
+    background: #fff;
+  }
+
+  .btn-outline-primary:hover {
+    color: #fff;
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+
+  .btn-outline-secondary {
+    border-color: #dce2ed;
+    color: #596579;
+    background: #fff;
+  }
+
+  .btn-outline-secondary:hover {
+    background: #f1f4f9;
+    border-color: #cbd3e0;
+    color: var(--dark);
+  }
+
+  .btn-outline-danger {
+    border-color: #fee2e2;
+    color: #dc2626;
+  }
+
+  .btn-outline-danger:hover {
+    color: #fff;
+    background: #dc2626;
+    border-color: #dc2626;
+  }
+
+  .btn-success {
+    background: #15803d;
+    border-color: #15803d;
+  }
+
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+    transform: none;
+  }
+
+  /* TABLES */
+  .table-responsive {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    scrollbar-width: thin;
+  }
+
+  .table {
+    margin-bottom: 0;
+    vertical-align: middle;
+    font-size: 13px;
+  }
+
+  .table > :not(caption) > * > * {
+    padding: 15px 16px;
+    border-bottom-color: #edf0f5;
+  }
+
+  .table thead th {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    background: #f7f8fc;
+    color: #788399;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .65px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .table-hover > tbody > tr:hover > * {
+    background: #fafbff;
+    color: inherit;
+  }
+
+  .table .btn {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .empty {
+    padding: 32px 20px !important;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  /* STATUS BADGES */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: 1px solid #bbf7d0;
+    border-radius: 30px;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .status-inactive {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+
+  /* PROFILE DETAILS */
+  .profile-item {
+    height: 100%;
+    padding: 17px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #f9faff;
+    transition: border-color .2s ease, background .2s ease;
+  }
+
+  .profile-item:hover {
+    border-color: #c7d2fe;
+    background: #f5f6ff;
+  }
+
+  .profile-label {
+    margin-bottom: 7px;
+    color: #8791a5;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+  }
+
+  .profile-value {
+    color: #263149;
+    font-size: 13px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+
+  .profile-avatar {
+    display: block;
+    width: 86px;
+    height: 86px;
+    margin-bottom: 12px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e9edff;
+    box-shadow: 0 0 0 1px var(--border), 0 5px 15px #17203312;
+  }
+
+  /* ALERTS */
+  .alert {
+    padding: 13px 16px;
+    border-radius: 11px;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .alert-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+  }
+
+  .alert-danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+
+  .alert-info {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  /* FEE SUMMARY */
+  #feeDetailsPanel .stat-card:nth-child(1) {
+    border-top: 3px solid #6366f1;
+  }
+
+  #feeDetailsPanel .stat-card:nth-child(2) {
+    border-top: 3px solid #22c55e;
+  }
+
+  #feeDetailsPanel .stat-card:nth-child(3) {
+    border-top: 3px solid #ef4444;
+  }
+
+  /* FOCUS ACCESSIBILITY */
+  button:focus-visible,
+  a:focus-visible {
+    outline: 3px solid #a5b4fc;
+    outline-offset: 3px;
+  }
+
+  /* TABLET */
+  @media (max-width: 1100px) {
+    .sidebar {
+      width: 225px;
+      padding: 22px 13px;
+    }
+
+    .main {
+      margin-left: 225px;
+    }
+
+    .content {
+      padding: 24px;
+    }
+
+    .topbar {
+      padding-right: 24px;
+      padding-left: 24px;
+    }
+
+    .panel {
+      padding: 21px;
+    }
+  }
+
+  /* MOBILE */
+  @media (max-width: 800px) {
+    .sidebar {
+      position: relative;
+      inset: auto;
+      width: 100%;
+      padding: 15px;
+      border-right: 0;
+      border-bottom: 1px solid var(--border);
+      background: #151d33;
+    }
+
+    .sidebar-brand {
+      padding: 5px 7px 15px;
+      margin-bottom: 12px;
+    }
+
+    .sidebar .brand {
+      font-size: 17px;
+    }
+
+    .sidebar > button[data-page] {
+      display: inline-flex;
+      width: auto;
+      margin: 3px 2px;
+      padding: 9px 11px;
+      font-size: 11px;
+    }
+
+    .sidebar hr {
+      margin: 12px 0;
+    }
+
+    .sidebar #logoutButton {
+      width: auto;
+      padding: 8px 12px;
+    }
+
+    .main {
+      margin-left: 0;
+      min-width: 0;
+    }
+
+    .topbar {
+      position: relative;
+      min-height: 72px;
+      padding: 16px 20px;
+    }
+
+    .topbar h1 {
+      font-size: 17px;
+    }
+
+    .content {
+      padding: 20px 16px;
+    }
+
+    .page-section > .mb-4 h2 {
+      font-size: 22px;
+    }
+
+    .panel {
+      padding: 18px;
+      margin-bottom: 17px;
+      border-radius: 14px;
+    }
+
+    .stat-card {
+      min-height: 115px;
+      padding: 18px;
+    }
+
+    .stat-value {
+      font-size: 27px;
+    }
+
+    .login-card {
+      padding: 28px 23px;
+      border-radius: 20px;
+    }
+
+    .table > :not(caption) > * > * {
+      padding: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .content {
+      padding: 15px 11px;
+    }
+
+    .topbar {
+      align-items: flex-start;
+      padding: 15px 12px;
+    }
+
+    #adminName {
+      font-size: 12px;
+    }
+
+    #adminEmail {
+      max-width: 145px;
+      font-size: 10px;
+    }
+
+    .sidebar > button[data-page] {
+      font-size: 10px;
+      padding: 8px 9px;
+    }
+
+    .panel {
+      padding: 15px;
+    }
+
+    .stat-card {
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+    }
+
+    .d-flex.justify-content-between {
+      flex-wrap: wrap;
+    }
+
+    .login-card {
+      padding: 25px 20px;
+    }
+
+    .table {
+      font-size: 12px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: .01ms !important;
+      transition-duration: .01ms !important;
+    }
+  }
+</style>
+
+</head>
+
+<body>
+  <!-- Login / initial admin setup -->
+  <section id="loginScreen" class="login-wrapper">
+    <div class="login-card">
+      <div class="brand mb-2">Let's Talk English Class</div>
+      <h2 class="h4 fw-bold mt-4" id="loginHeading">Admin Login</h2>
+      <p class="muted mb-4" id="loginDescription">Sign in to manage your institute.</p>
+
+      <div id="loginMessage" class="alert hidden" role="alert"></div>
+
+      <form id="loginForm">
+        <div class="mb-3">
+          <label for="loginEmail" class="form-label">Email</label>
+          <input id="loginEmail" class="form-control" type="email" required autocomplete="username">
+        </div>
+        <div class="mb-3">
+          <label for="loginPassword" class="form-label">Password</label>
+          <input id="loginPassword" class="form-control" type="password" required autocomplete="current-password">
+        </div>
+        <div id="signupNameWrap" class="mb-3 hidden">
+          <label for="signupName" class="form-label">Admin name</label>
+          <input id="signupName" class="form-control" autocomplete="name">
+        </div>
+        <button id="loginSubmit" class="btn btn-primary w-100 py-2" type="submit">
+          Login
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <div id="adminApp" class="hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand">Let's Talk English</div>
+        <div class="muted mt-1">Administration Panel</div>
+      </div>
+
+      <button class="nav-item-custom active" data-page="overview">📊 Overview</button>
+      <button class="nav-item-custom" data-page="students">👥 Student Accounts</button>
+      <button class="nav-item-custom" data-page="registered">✅ Registered Students</button>
+      <button class="nav-item-custom" data-page="fees">💰 Fee Management</button>
+      <button class="nav-item-custom" data-page="admissions">📝 Admissions</button>
+      <button class="nav-item-custom" data-page="courses">📚 Courses</button>
+      <button class="nav-item-custom" data-page="password">🔒 Change Password</button>
+
+      <hr>
+    
+<button
+  type="button"
+  id="logoutButton"
+  class="btn btn-outline-danger w-100 mt-2"
+>
+  <i class="bi bi-box-arrow-right me-2"></i> Logout
+</button>
+
+<button
+  type="button"
+  class="btn btn-outline-danger w-100 mt-2"
+  id="deleteAdminAccountBtn"
+>
+  <i class="bi bi-trash3 me-2"></i> Delete Account
+</button>
+
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle" class="h5 fw-bold mb-1">Overview</h1>
+          <div class="muted">Let's Talk English Class Admin</div>
+        </div>
+       
+        
+<div class="d-flex align-items-center gap-3">
+  <div>
+    <div id="adminName" class="fw-bold">Admin</div>
+    <div id="adminEmail" class="muted"></div>
+  </div>
+
+  <div class="text-center">
+    <img
+      id="adminProfilePreview"
+      src="images/logo.svg"
+      alt="Admin Profile Photo"
+      width="64"
+      height="64"
+      style="object-fit: cover; border-radius: 50%; border: 2px solid #ddd;"
+    >
+
+   
+  
+  </div>
+
+
+<p id="profilePhotoMessage" role="status"></p>
+      </header>
+
+      <div class="content">
+        <!-- Overview -->
+        <section id="page-overview" class="page-section active">
+          <div class="mb-4">
+            <h2 class="h4 fw-bold">Dashboard Overview</h2>
+            <p class="muted">Your institute's latest information.</p>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-xl-3">
+              <div class="stat-card">
+                <div class="stat-label">Total Student Accounts</div>
+                <div id="totalStudents" class="stat-value">—</div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="stat-card">
+                <div class="stat-label">Registered Students</div>
+                <div id="totalRegistered" class="stat-value">—</div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="stat-card">
+                <div class="stat-label">Admission Enquiries</div>
+                <div id="totalAdmissions" class="stat-value">—</div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="stat-card">
+                <div class="stat-label">Available Courses</div>
+                <div id="totalCourses" class="stat-value">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3 class="h5 fw-bold">Quick Actions</h3>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <button class="btn btn-primary" data-go="students">Create Student Account</button>
+              <button class="btn btn-outline-primary" data-go="registered">View Registered Students</button>
+              <button class="btn btn-outline-primary" data-go="admissions">View Admissions</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Student account management -->
+        <section id="page-students" class="page-section">
+          <div class="panel">
+            <h2 class="h5 fw-bold mb-1" id="studentFormHeading">Create Student Account</h2>
+            <p class="muted">Create a login for a student or update their name and email.</p>
+
+            <div id="studentMessage" class="alert hidden"></div>
+
+            <form id="studentForm">
+              <input type="hidden" id="studentMongoId">
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="studentFullName" class="form-label">Full Name</label>
+                  <input id="studentFullName" class="form-control" required maxlength="100">
+                </div>
+                <div class="col-md-6">
+                  <label for="studentEmail" class="form-label">Email</label>
+                  <input id="studentEmail" class="form-control" type="email" required>
+                </div>
+                <div class="col-md-6" id="studentLoginIdWrap">
+                  <label for="studentLoginId" class="form-label">Student Login ID</label>
+                  <input id="studentLoginId" class="form-control" required maxlength="30">
+                </div>
+                <div class="col-md-6" id="studentPasswordWrap">
+                  <label for="studentTemporaryPassword" class="form-label">Temporary Password</label>
+                  <input id="studentTemporaryPassword" class="form-control" type="password" minlength="8" autocomplete="new-password">
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mt-4">
+                <button class="btn btn-primary" type="submit" id="saveStudentButton">Create Account</button>
+                <button class="btn btn-outline-secondary hidden" type="button" id="cancelStudentEdit">Cancel Edit</button>
+              </div>
+            </form>
+
+            <div id="createdCredentials" class="alert alert-success mt-3 hidden"></div>
+          </div>
+
+          <div class="panel">
+            <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+              <div>
+                <h2 class="h5 fw-bold mb-1">All Student Accounts</h2>
+                <p class="muted mb-0">Includes accounts with pending registration.</p>
+              </div>
+              <button id="refreshStudents" class="btn btn-outline-primary">Refresh</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Email</th><th>Login ID</th>
+                    <th>Registration</th><th>Status</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsBody">
+                  <tr><td colspan="6" class="empty">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Registered students -->
+        <section id="page-registered" class="page-section">
+          <div class="panel">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+              <div>
+                <h2 class="h5 fw-bold mb-1">Registered Students</h2>
+                <p class="muted mb-0">Click a student's name to open their complete profile.</p>
+              </div>
+              <button id="refreshRegisteredButton" class="btn btn-outline-primary">Refresh</button>
+            </div>
+
+            <div class="alert alert-info">
+              This list shows students who have completed their registration form.
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Login ID</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Course</th>
+                    <th>Registration Date</th>
+                  </tr>
+                </thead>
+                <tbody id="registeredStudentsBody">
+                  <tr><td colspan="6" class="empty">Loading registered students...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="registeredProfilePanel" class="panel hidden">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+              <div>
+                <h2 id="registeredProfileName" class="h5 fw-bold mb-1">Student Profile</h2>
+                <p class="muted mb-0">Complete student registration information</p>
+              </div>
+              <button id="closeRegisteredProfile" class="btn btn-outline-secondary">Close Profile</button>
+            </div>
+
+            <div id="registeredProfileContent" class="row g-3"></div>
+          </div>
+        </section>
+
+<!-- Fee Management -->
+<section id="page-fees" class="page-section">
+  <div class="panel">
+    <h2 class="h5 fw-bold mb-1">Fee Management</h2>
+    <p class="muted">Set student fees, record payments and track pending balances.</p>
+
+    <div id="feeMessage" class="alert hidden" role="alert"></div>
+
+    <div class="row g-3 align-items-end">
+      <div class="col-md-8">
+        <label for="feeStudentSelect" class="form-label">Select Student</label>
+        <select id="feeStudentSelect" class="form-select" required>
+          <option value="">Loading students...</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <button type="button" id="refreshFeeStudents" class="btn btn-outline-primary w-100">
+          Refresh Students
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="feeDetailsPanel" class="hidden">
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-label">Total Fee</div>
+          <div id="feeTotalDisplay" class="stat-value">₹0</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-label">Paid Amount</div>
+          <div id="feePaidDisplay" class="stat-value text-success">₹0</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-label">Pending Fee</div>
+          <div id="feePendingDisplay" class="stat-value text-danger">₹0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="h5 fw-bold">Set Total Fee</h3>
+      <p class="muted">The total fee cannot be less than the amount already paid.</p>
+
+      <form id="totalFeeForm">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-8">
+            <label for="totalFeeInput" class="form-label">Total Course Fee (₹)</label>
+            <input id="totalFeeInput" type="number" class="form-control"
+              min="0" step="0.01" required>
+          </div>
+          <div class="col-md-4">
+            <button type="submit" class="btn btn-primary w-100">Save Total Fee</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3 class="h5 fw-bold">Record Payment</h3>
+      <p class="muted">Record each payment received from the selected student.</p>
+
+      <form id="feePaymentForm">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="paymentAmount" class="form-label">Payment Amount (₹)</label>
+            <input id="paymentAmount" type="number" class="form-control"
+              min="0.01" step="0.01" required>
+          </div>
+          <div class="col-md-6">
+            <label for="paymentDate" class="form-label">Payment Date</label>
+            <input id="paymentDate" type="date" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label for="paymentMethod" class="form-label">Payment Method</label>
+            <select id="paymentMethod" class="form-select" required>
+              <option value="Cash">Cash</option>
+              <option value="UPI">UPI</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Card">Card</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="paymentNote" class="form-label">Note (Optional)</label>
+            <input id="paymentNote" type="text" class="form-control"
+              maxlength="200" placeholder="Receipt number or remarks">
+          </div>
+        </div>
+        <button type="submit" id="recordPaymentButton" class="btn btn-success mt-3">
+          Record Payment
+        </button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+        <div>
+          <h3 class="h5 fw-bold mb-1">Payment History</h3>
+          <p class="muted mb-0">Recorded payments for the selected student.</p>
+        </div>
+        <button type="button" id="refreshFeeDetails" class="btn btn-outline-primary">
+          Refresh
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="feePaymentsBody">
+            <tr><td colspan="4" class="empty">Select a student to view payments.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+        <!-- Admissions -->
+        <section id="page-admissions" class="page-section">
+          <div class="panel">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+              <div>
+                <h2 class="h5 fw-bold mb-1">Admission Enquiries</h2>
+                <p class="muted mb-0">Enquiries submitted through the website.</p>
+              </div>
+              <button id="refreshAdmissions" class="btn btn-outline-primary">Refresh</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr><th>Name</th><th>Phone</th><th>Course</th><th>Message</th><th>Date</th></tr>
+                </thead>
+                <tbody id="admissionsBody">
+                  <tr><td colspan="5" class="empty">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Courses -->
+        <section id="page-courses" class="page-section">
+          <div class="panel">
+            <h2 class="h5 fw-bold mb-1" id="courseFormHeading">Add Course</h2>
+            <p class="muted">Manage the courses offered by the institute.</p>
+            <div id="courseMessage" class="alert hidden"></div>
+
+            <form id="courseForm">
+              <input type="hidden" id="courseMongoId">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="courseName" class="form-label">Course Name</label>
+                  <input id="courseName" class="form-control" required maxlength="120">
+                </div>
+                <div class="col-md-6">
+                  <label for="courseCategory" class="form-label">Category</label>
+                  <input id="courseCategory" class="form-control" required maxlength="80" placeholder="Spoken English, School English...">
+                </div>
+                <div class="col-md-6">
+                  <label for="courseDuration" class="form-label">Duration</label>
+                  <input id="courseDuration" class="form-control" maxlength="100">
+                </div>
+                <div class="col-md-6">
+                  <label for="courseFee" class="form-label">Fee</label>
+                  <input id="courseFee" class="form-control" type="number" min="0" value="0">
+                </div>
+                <div class="col-12">
+                  <label for="courseDescription" class="form-label">Description</label>
+                  <textarea id="courseDescription" class="form-control" rows="3" maxlength="1000"></textarea>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-primary" id="saveCourseButton" type="submit">Add Course</button>
+                <button class="btn btn-outline-secondary hidden" id="cancelCourseEdit" type="button">Cancel Edit</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="h5 fw-bold mb-0">All Courses</h2>
+              <button id="refreshCourses" class="btn btn-outline-primary">Refresh</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr><th>Name</th><th>Category</th><th>Duration</th><th>Fee</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="coursesBody">
+                  <tr><td colspan="5" class="empty">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Change password -->
+        <section id="page-password" class="page-section">
+          <div class="panel" style="max-width:600px">
+            <h2 class="h5 fw-bold">Change Admin Password</h2>
+            <p class="muted">Choose a new password with at least 8 characters.</p>
+            <div id="passwordMessage" class="alert hidden"></div>
+
+            <form id="passwordForm">
+              <div class="mb-3">
+                <label for="currentPassword" class="form-label">Current Password</label>
+                <input id="currentPassword" class="form-control" type="password" required autocomplete="current-password">
+              </div>
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input id="newPassword" class="form-control" type="password" minlength="8" required autocomplete="new-password">
+              </div>
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                <input id="confirmPassword" class="form-control" type="password" minlength="8" required autocomplete="new-password">
+              </div>
+              <button class="btn btn-primary" type="submit">Update Password</button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:5000";
+    const $ = id => document.getElementById(id);
+
+    let studentsCache = [];
+    let coursesCache = [];
+    let adminInfo = null;
+    let setupMode = false;
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function showMessage(id, message, type = "danger") {
+      const element = $(id);
+      element.className = `alert alert-${type}`;
+      element.textContent = message;
+      element.classList.remove("hidden");
+    }
+
+    function hideMessage(id) {
+      $(id).classList.add("hidden");
+    }
+
+    async function api(path, options = {}) {
+  let response;
+
+  try {
+    response = await fetch(API + path, {
+      ...options,
+      credentials: "include",
+      headers: {
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...(options.headers || {})
+      }
+    });
+  } catch (error) {
+    console.error("Network error:", error);
+    throw new Error(
+      "Backend se connection nahi ho raha. Check karo server running hai ya nahi."
+    );
+  }
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data.success === false) {
+    if (
+      response.status === 401 &&
+      !path.includes("/login") &&
+      !path.includes("/setup-status")
+    ) {
+      showLogin();
+    }
+
+    console.error("API error:", {
+      path,
+      status: response.status,
+      response: data
+    });
+
+    throw new Error(
+      data.message || `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+    function showLogin() {
+      $("loginScreen").classList.remove("hidden");
+      $("adminApp").classList.add("hidden");
+    }
+
+    function showAdmin() {
+      $("loginScreen").classList.add("hidden");
+      $("adminApp").classList.remove("hidden");
+
+      $("adminName").textContent = adminInfo?.name || "Admin";
+      $("adminEmail").textContent = adminInfo?.email || "";
+
+      loadDashboard();
+    }
+  
+$("deleteAdminAccountBtn").addEventListener("click", async () => {
+  const confirmed = confirm(
+    "Are you sure? Your admin account will be permanently deleted."
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const data = await api("/api/admin/delete-account", {
+      method: "DELETE"
+    });
+
+    alert(data.message || "Admin account deleted successfully.");
+
+    adminInfo = null;
+    setupMode = true;
+    $("loginForm").reset();
+
+    await checkSession();
+  } catch (error) {
+    alert(error.message || "Unable to delete account.");
+  }
+});
+
+    async function checkSession() {
+      try {
+        const data = await api("/api/admin/me");
+        adminInfo = data.admin;
+        showAdmin();
+      } catch (error) {
+        if (error.message) console.log("Admin session:", error.message);
+
+        try {
+          const status = await api("/api/admin/setup-status");
+          setupMode = Boolean(status.setupRequired);
+          $("signupNameWrap").classList.toggle("hidden", !setupMode);
+          $("loginHeading").textContent = setupMode ? "Create Admin Account" : "Admin Login";
+          $("loginDescription").textContent = setupMode
+            ? "Create the initial administrator account."
+            : "Sign in to manage your institute.";
+          $("loginSubmit").textContent = setupMode ? "Create Admin Account" : "Login";
+        } catch (setupError) {
+          showMessage("loginMessage", setupError.message);
+        }
+
+        showLogin();
+      }
+    }
+
+    $("loginForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      hideMessage("loginMessage");
+
+      const email = $("loginEmail").value.trim();
+      const password = $("loginPassword").value;
+      const path = setupMode ? "/api/admin/signup" : "/api/admin/login";
+
+      const payload = { email, password };
+      if (setupMode) payload.name = $("signupName").value.trim();
+
+      try {
+        const data = await api(path, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        adminInfo = data.admin;
+        showAdmin();
+      } catch (error) {
+        showMessage("loginMessage", error.message);
+      }
+    });
+
+    $("logoutButton").addEventListener("click", async () => {
+      try {
+        await api("/api/admin/logout", { method: "POST" });
+      } catch (error) {
+        console.error(error);
+      }
+      adminInfo = null;
+      showLogin();
+    });
+
+    const pageTitles = {
+  overview: "Overview",
+  students: "Student Accounts",
+  registered: "Registered Students",
+  fees: "Fee Management",
+  admissions: "Admissions",
+  courses: "Courses",
+  password: "Change Password"
+};
+
+    function navigate(page) {
+      if (!pageTitles[page]) return;
+
+      document.querySelectorAll(".page-section").forEach(section => {
+        section.classList.remove("active");
+      });
+
+      document.querySelectorAll("[data-page]").forEach(button => {
+        button.classList.toggle("active", button.dataset.page === page);
+      });
+
+      $("page-" + page).classList.add("active");
+      $("pageTitle").textContent = pageTitles[page];
+
+      if (page === "overview") loadDashboard();
+      if (page === "students") loadStudents();
+      if (page === "registered") loadRegisteredStudents();
+      if (page === "fees") loadFeeStudents();
+      if (page === "admissions") loadAdmissions();
+      if (page === "courses") loadCourses();
+    }
+
+    document.querySelectorAll("[data-page]").forEach(button => {
+      button.addEventListener("click", () => navigate(button.dataset.page));
+    });
+
+    document.querySelectorAll("[data-go]").forEach(button => {
+      button.addEventListener("click", () => navigate(button.dataset.go));
+    });
+
+    async function loadDashboard() {
+      try {
+        const [studentData, admissionData, courseData] = await Promise.all([
+          api("/api/admin/students"),
+          api("/api/admin/admissions"),
+          api("/api/courses")
+        ]);
+
+        const students = studentData.students || [];
+        $("totalStudents").textContent = students.length;
+        $("totalRegistered").textContent = students.filter(
+          student => student.registrationCompleted === true
+        ).length;
+        $("totalAdmissions").textContent = admissionData.total ?? (admissionData.admissions || []).length;
+        $("totalCourses").textContent = (courseData.courses || []).length;
+      } catch (error) {
+        console.error("Dashboard:", error.message);
+      }
+    }
+
+    function resetStudentForm() {
+      $("studentForm").reset();
+      $("studentMongoId").value = "";
+      $("studentFormHeading").textContent = "Create Student Account";
+      $("saveStudentButton").textContent = "Create Account";
+      $("cancelStudentEdit").classList.add("hidden");
+      $("studentLoginIdWrap").classList.remove("hidden");
+      $("studentPasswordWrap").classList.remove("hidden");
+      $("studentLoginId").required = true;
+      $("studentTemporaryPassword").required = true;
+      hideMessage("studentMessage");
+      $("createdCredentials").classList.add("hidden");
+    }
+
+    $("cancelStudentEdit").addEventListener("click", resetStudentForm);
+
+    $("studentForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      hideMessage("studentMessage");
+      $("createdCredentials").classList.add("hidden");
+
+      const id = $("studentMongoId").value;
+
+      if (id) {
+        try {
+          await api(`/api/admin/students/${encodeURIComponent(id)}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              fullName: $("studentFullName").value.trim(),
+              email: $("studentEmail").value.trim()
+            })
+          });
+
+          showMessage("studentMessage", "Student account updated successfully.", "success");
+          resetStudentForm();
+          await loadStudents();
+          await loadDashboard();
+        } catch (error) {
+          showMessage("studentMessage", error.message);
+        }
+        return;
+      }
+
+      try {
+        const data = await api("/api/admin/students", {
+          method: "POST",
+          body: JSON.stringify({
+            fullName: $("studentFullName").value.trim(),
+            email: $("studentEmail").value.trim(),
+            studentId: $("studentLoginId").value.trim(),
+            temporaryPassword: $("studentTemporaryPassword").value
+          })
+        });
+
+        const credentials = data.credentials;
+        $("createdCredentials").textContent =
+          `Account created. Login ID: ${credentials.studentId}. Temporary password: ${credentials.temporaryPassword}. Share these credentials securely with the student.`;
+        $("createdCredentials").classList.remove("hidden");
+
+        resetStudentForm();
+        await loadStudents();
+        await loadDashboard();
+      } catch (error) {
+        showMessage("studentMessage", error.message);
+      }
+    });
+
+    async function loadStudents() {
+      const body = $("studentsBody");
+      body.innerHTML = '<tr><td colspan="6" class="empty">Loading...</td></tr>';
+
+      try {
+        const data = await api("/api/admin/students");
+        studentsCache = data.students || [];
+        body.innerHTML = "";
+
+        if (!studentsCache.length) {
+          body.innerHTML = '<tr><td colspan="6" class="empty">No student accounts found.</td></tr>';
+          return;
+        }
+
+        studentsCache.forEach(student => {
+          const row = document.createElement("tr");
+          const active = student.isActive !== false;
+
+          row.innerHTML = `
+            <td>${escapeHTML(student.fullName || "—")}</td>
+            <td>${escapeHTML(student.email || "—")}</td>
+            <td><strong>${escapeHTML(student.studentId || "—")}</strong></td>
+            <td>${student.registrationCompleted
+              ? '<span class="status-badge">Completed</span>'
+              : '<span class="status-badge status-inactive">Pending</span>'}</td>
+            <td><span class="status-badge ${active ? "" : "status-inactive"}">${active ? "Active" : "Inactive"}</span></td>
+            <td class="text-nowrap">
+              <button class="btn btn-sm btn-outline-primary me-1" data-edit-student="${escapeHTML(student._id)}">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" data-delete-student="${escapeHTML(student._id)}">Delete</button>
+            </td>
+          `;
+
+          body.appendChild(row);
+        });
+      } catch (error) {
+        body.innerHTML = `<tr><td colspan="6" class="text-danger">${escapeHTML(error.message)}</td></tr>`;
+      }
+    }
+
+    $("studentsBody").addEventListener("click", async event => {
+      const editButton = event.target.closest("[data-edit-student]");
+      const deleteButton = event.target.closest("[data-delete-student]");
+
+      if (editButton) {
+        const student = studentsCache.find(
+          item => item._id === editButton.dataset.editStudent
+        );
+        if (!student) return;
+
+        $("studentMongoId").value = student._id;
+        $("studentFullName").value = student.fullName || "";
+        $("studentEmail").value = student.email || "";
+        $("studentFormHeading").textContent = "Edit Student Account";
+        $("saveStudentButton").textContent = "Save Changes";
+        $("cancelStudentEdit").classList.remove("hidden");
+        $("studentLoginIdWrap").classList.add("hidden");
+        $("studentPasswordWrap").classList.add("hidden");
+        $("studentLoginId").required = false;
+        $("studentTemporaryPassword").required = false;
+        $("createdCredentials").classList.add("hidden");
+        $("studentForm").scrollIntoView({ behavior: "smooth" });
+      }
+
+      if (deleteButton) {
+        const id = deleteButton.dataset.deleteStudent;
+        const student = studentsCache.find(item => item._id === id);
+
+        if (!confirm(`Delete student account for ${student?.fullName || "this student"}? This cannot be undone.`)) {
+          return;
+        }
+
+        try {
+          await api(`/api/admin/students/${encodeURIComponent(id)}`, {
+            method: "DELETE"
+          });
+          resetStudentForm();
+          await loadStudents();
+          await loadDashboard();
+          await loadRegisteredStudents();
+        } catch (error) {
+          showMessage("studentMessage", error.message);
+        }
+      }
+    });
+
+    function formatDate(value, includeTime = false) {
+      if (!value) return "—";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "—";
+
+      return includeTime
+        ? date.toLocaleString("en-IN")
+        : date.toLocaleDateString("en-IN");
+    }
+
+    async function loadRegisteredStudents() {
+      const body = $("registeredStudentsBody");
+      body.innerHTML = '<tr><td colspan="6" class="empty">Loading registered students...</td></tr>';
+      $("registeredProfilePanel").classList.add("hidden");
+
+      try {
+        const data = await api("/api/admin/students");
+        studentsCache = data.students || [];
+
+        const registeredStudents = Array.isArray(data.registeredStudents)
+          ? data.registeredStudents
+          : studentsCache.filter(student => student.registrationCompleted === true);
+
+        body.innerHTML = "";
+
+        if (!registeredStudents.length) {
+          body.innerHTML = '<tr><td colspan="6" class="empty">No completed registrations found.</td></tr>';
+          return;
+        }
+
+        registeredStudents.forEach(student => {
+          const row = document.createElement("tr");
+          const nameCell = document.createElement("td");
+          const nameButton = document.createElement("button");
+
+          nameButton.type = "button";
+          nameButton.className = "btn btn-link p-0 text-decoration-none fw-semibold";
+          nameButton.textContent = student.fullName || "Unnamed Student";
+          nameButton.dataset.viewRegistered = student._id;
+          nameCell.appendChild(nameButton);
+
+          const values = [
+            student.studentId || "—",
+            student.email || "—",
+            student.phone || "—",
+            student.course || "—",
+            formatDate(student.updatedAt || student.createdAt)
+          ];
+
+          row.appendChild(nameCell);
+
+          values.forEach(value => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+          });
+
+          body.appendChild(row);
+        });
+      } catch (error) {
+        body.innerHTML = `<tr><td colspan="6" class="text-danger">${escapeHTML(error.message)}</td></tr>`;
+      }
+    }
+
+    $("registeredStudentsBody").addEventListener("click", async event => {
+      const button = event.target.closest("[data-view-registered]");
+      if (!button) return;
+
+      const studentId = button.dataset.viewRegistered;
+      const panel = $("registeredProfilePanel");
+      const content = $("registeredProfileContent");
+
+      panel.classList.remove("hidden");
+      content.innerHTML = '<div class="col-12 muted">Loading student profile...</div>';
+      $("registeredProfileName").textContent = "Student Profile";
+
+      try {
+        const data = await api(`/api/admin/students/${encodeURIComponent(studentId)}`);
+        const student = data.student;
+
+        if (!student) throw new Error("Student profile not found.");
+
+        $("registeredProfileName").textContent = student.fullName || "Student Profile";
+        content.innerHTML = "";
+
+        const profileFields = [
+          ["Full Name", student.fullName],
+          ["Student Login ID", student.studentId],
+          ["Email", student.email],
+          ["Phone", student.phone],
+          ["Date of Birth", formatDate(student.dateOfBirth)],
+          ["Gender", student.gender],
+          ["Qualification", student.qualification],
+          ["School / College", student.schoolCollege],
+          ["Course", student.course],
+          ["Session", student.session],
+          ["Address", student.address],
+          ["City", student.city],
+          ["State", student.state],
+          ["PIN Code", student.pinCode],
+          ["Guardian Name", student.guardianName],
+          ["Guardian Phone", student.guardianPhone],
+          ["Account Status", student.isActive === false ? "Inactive" : "Active"],
+          ["Registration Status", student.registrationCompleted ? "Completed" : "Pending"],
+          ["Account Created", formatDate(student.createdAt, true)],
+          ["Last Updated", formatDate(student.updatedAt, true)]
+        ];
+
+        if (student.profileImage && /^https?:\/\//i.test(student.profileImage)) {
+          const imageColumn = document.createElement("div");
+          imageColumn.className = "col-12";
+
+          const image = document.createElement("img");
+          image.src = student.profileImage;
+          image.alt = "Student profile";
+          image.className = "profile-avatar";
+          image.referrerPolicy = "no-referrer";
+          image.onerror = () => image.remove();
+
+          imageColumn.appendChild(image);
+          content.appendChild(imageColumn);
+        }
+
+        profileFields.forEach(([label, value]) => {
+          const column = document.createElement("div");
+          column.className = "col-md-6 col-xl-4";
+
+          const item = document.createElement("div");
+          item.className = "profile-item";
+
+          const labelElement = document.createElement("div");
+          labelElement.className = "profile-label";
+          labelElement.textContent = label;
+
+          const valueElement = document.createElement("div");
+          valueElement.className = "profile-value";
+          valueElement.textContent =
+            value !== undefined && value !== null && value !== ""
+              ? String(value)
+              : "Not provided";
+
+          item.append(labelElement, valueElement);
+          column.appendChild(item);
+          content.appendChild(column);
+        });
+
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (error) {
+        content.innerHTML = "";
+        const errorBox = document.createElement("div");
+        errorBox.className = "col-12 alert alert-danger";
+        errorBox.textContent = error.message;
+        content.appendChild(errorBox);
+      }
+    });
+
+    $("refreshStudents").addEventListener("click", loadStudents);
+    $("refreshRegisteredButton").addEventListener("click", loadRegisteredStudents);
+
+    $("closeRegisteredProfile").addEventListener("click", () => {
+      $("registeredProfilePanel").classList.add("hidden");
+    });
+
+    async function loadAdmissions() {
+      const body = $("admissionsBody");
+      body.innerHTML = '<tr><td colspan="5" class="empty">Loading...</td></tr>';
+
+      try {
+        const data = await api("/api/admin/admissions");
+        const admissions = data.admissions || [];
+        body.innerHTML = "";
+
+        if (!admissions.length) {
+          body.innerHTML = '<tr><td colspan="5" class="empty">No admission enquiries found.</td></tr>';
+          return;
+        }
+
+        admissions.forEach(admission => {
+          const row = document.createElement("tr");
+          const values = [
+            admission.name,
+            admission.phone,
+            admission.course,
+            admission.message,
+            formatDate(admission.createdAt, true)
+          ];
+
+          values.forEach(value => {
+            const cell = document.createElement("td");
+            cell.textContent = value || "—";
+            row.appendChild(cell);
+          });
+
+          body.appendChild(row);
+        });
+      } catch (error) {
+        body.innerHTML = `<tr><td colspan="5" class="text-danger">${escapeHTML(error.message)}</td></tr>`;
+      }
+    }
+
+    $("refreshAdmissions").addEventListener("click", loadAdmissions);
+
+    function resetCourseForm() {
+      $("courseForm").reset();
+      $("courseMongoId").value = "";
+      $("courseFee").value = 0;
+      $("courseFormHeading").textContent = "Add Course";
+      $("saveCourseButton").textContent = "Add Course";
+      $("cancelCourseEdit").classList.add("hidden");
+      hideMessage("courseMessage");
+    }
+
+    $("cancelCourseEdit").addEventListener("click", resetCourseForm);
+
+    $("courseForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      hideMessage("courseMessage");
+
+      const id = $("courseMongoId").value;
+      const fee = Number($("courseFee").value);
+
+      if (!Number.isFinite(fee) || fee < 0) {
+        showMessage("courseMessage", "Enter a valid course fee.");
+        return;
+      }
+
+      const payload = {
+        name: $("courseName").value.trim(),
+        category: $("courseCategory").value.trim(),
+        duration: $("courseDuration").value.trim(),
+        fee,
+        description: $("courseDescription").value.trim()
+      };
+
+      try {
+        await api(id
+          ? `/api/admin/courses/${encodeURIComponent(id)}`
+          : "/api/admin/courses", {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify(payload)
+        });
+
+        showMessage("courseMessage", id ? "Course updated." : "Course added.", "success");
+        resetCourseForm();
+        await loadCourses();
+        await loadDashboard();
+      } catch (error) {
+        showMessage("courseMessage", error.message);
+      }
+    });
+
+    async function loadCourses() {
+      const body = $("coursesBody");
+      body.innerHTML = '<tr><td colspan="5" class="empty">Loading...</td></tr>';
+
+      try {
+        const data = await api("/api/courses");
+        coursesCache = data.courses || [];
+        body.innerHTML = "";
+
+        if (!coursesCache.length) {
+          body.innerHTML = '<tr><td colspan="5" class="empty">No courses found.</td></tr>';
+          return;
+        }
+
+        coursesCache.forEach(course => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${escapeHTML(course.name || "—")}</td>
+            <td>${escapeHTML(course.category || "—")}</td>
+            <td>${escapeHTML(course.duration || "—")}</td>
+            <td>${escapeHTML(course.fee ?? 0)}</td>
+            <td class="text-nowrap">
+              <button class="btn btn-sm btn-outline-primary me-1" data-edit-course="${escapeHTML(course._id)}">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" data-delete-course="${escapeHTML(course._id)}">Delete</button>
+            </td>
+          `;
+          body.appendChild(row);
+        });
+      } catch (error) {
+        body.innerHTML = `<tr><td colspan="5" class="text-danger">${escapeHTML(error.message)}</td></tr>`;
+      }
+    }
+
+    $("coursesBody").addEventListener("click", async event => {
+      const editButton = event.target.closest("[data-edit-course]");
+      const deleteButton = event.target.closest("[data-delete-course]");
+
+      if (editButton) {
+        const course = coursesCache.find(item => item._id === editButton.dataset.editCourse);
+        if (!course) return;
+
+        $("courseMongoId").value = course._id;
+        $("courseName").value = course.name || "";
+        $("courseCategory").value = course.category || "";
+        $("courseDuration").value = course.duration || "";
+        $("courseFee").value = course.fee ?? 0;
+        $("courseDescription").value = course.description || "";
+        $("courseFormHeading").textContent = "Edit Course";
+        $("saveCourseButton").textContent = "Save Changes";
+        $("cancelCourseEdit").classList.remove("hidden");
+        $("courseForm").scrollIntoView({ behavior: "smooth" });
+      }
+
+      if (deleteButton) {
+        const id = deleteButton.dataset.deleteCourse;
+        const course = coursesCache.find(item => item._id === id);
+
+        if (!confirm(`Delete course "${course?.name || ""}"?`)) return;
+
+        try {
+          await api(`/api/admin/courses/${encodeURIComponent(id)}`, {
+            method: "DELETE"
+          });
+          await loadCourses();
+          await loadDashboard();
+        } catch (error) {
+          showMessage("courseMessage", error.message);
+        }
+      }
+    });
+
+    $("refreshCourses").addEventListener("click", loadCourses);
+
+    let selectedFeeStudentId = "";
+let currentFeeData = null;
+
+function formatINR(value) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2
+  }).format(Number(value) || 0);
+}
+
+function localDateInputValue() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+}
+
+async function loadFeeStudents() {
+  const select = $("feeStudentSelect");
+  const previousId = selectedFeeStudentId || select.value;
+
+  select.innerHTML = '<option value="">Loading students...</option>';
+  hideMessage("feeMessage");
+
+  try {
+    const data = await api("/api/admin/students");
+    const students = data.students || [];
+
+    select.innerHTML = '<option value="">Select a student</option>';
+
+    students.forEach(student => {
+      const option = document.createElement("option");
+      option.value = student._id;
+      option.textContent =
+        `${student.fullName || "Unnamed"} (${student.studentId || "No Login ID"})`;
+      select.appendChild(option);
+    });
+
+    if (!students.length) {
+      select.innerHTML = '<option value="">No students found</option>';
+      $("feeDetailsPanel").classList.add("hidden");
+      selectedFeeStudentId = "";
+      currentFeeData = null;
+      return;
+    }
+
+    if (students.some(student => student._id === previousId)) {
+      select.value = previousId;
+    } else {
+      select.value = "";
+    }
+
+    if (select.value) {
+      selectedFeeStudentId = select.value;
+      await loadSelectedStudentFees();
+    } else {
+      selectedFeeStudentId = "";
+      currentFeeData = null;
+      $("feeDetailsPanel").classList.add("hidden");
+      $("feePaymentsBody").innerHTML =
+        '<tr><td colspan="4" class="empty">Select a student to view payments.</td></tr>';
+    }
+  } catch (error) {
+    select.innerHTML = '<option value="">Unable to load students</option>';
+    showMessage("feeMessage", error.message);
+  }
+}
+
+async function loadSelectedStudentFees() {
+  const id = $("feeStudentSelect").value;
+
+  if (!id) {
+    selectedFeeStudentId = "";
+    currentFeeData = null;
+    $("feeDetailsPanel").classList.add("hidden");
+    return;
+  }
+
+  selectedFeeStudentId = id;
+  $("feeDetailsPanel").classList.remove("hidden");
+  hideMessage("feeMessage");
+
+  try {
+    const data = await api(
+      `/api/admin/students/${encodeURIComponent(id)}/fees`
+    );
+
+    if (selectedFeeStudentId !== id) return;
+
+    currentFeeData = data.fees || {
+      totalFee: 0,
+      paidAmount: 0,
+      pendingFee: 0,
+      payments: []
+    };
+
+    renderFeeDetails();
+  } catch (error) {
+    showMessage("feeMessage", error.message);
+  }
+}
+
+function renderFeeDetails() {
+  if (!currentFeeData) return;
+
+  const totalFee = Number(currentFeeData.totalFee) || 0;
+  const paidAmount = Number(currentFeeData.paidAmount) || 0;
+  const pendingFee = Math.max(0, totalFee - paidAmount);
+
+  $("feeTotalDisplay").textContent = formatINR(totalFee);
+  $("feePaidDisplay").textContent = formatINR(paidAmount);
+  $("feePendingDisplay").textContent = formatINR(pendingFee);
+  $("totalFeeInput").value = totalFee;
+
+  $("paymentAmount").max = pendingFee;
+  $("recordPaymentButton").disabled = pendingFee <= 0;
+
+  const body = $("feePaymentsBody");
+  const payments = [...(currentFeeData.payments || [])].reverse();
+
+  body.innerHTML = "";
+
+  if (!payments.length) {
+    body.innerHTML =
+      '<tr><td colspan="4" class="empty">No payments recorded yet.</td></tr>';
+    return;
+  }
+
+  payments.forEach(payment => {
+    const row = document.createElement("tr");
+
+    const values = [
+      formatDate(payment.paymentDate),
+      formatINR(payment.amount),
+      payment.method || "Cash",
+      payment.note || "—"
+    ];
+
+    values.forEach(value => {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.appendChild(cell);
+    });
+
+    body.appendChild(row);
+  });
+}
+
+$("feeStudentSelect").addEventListener("change", async () => {
+  selectedFeeStudentId = $("feeStudentSelect").value;
+  currentFeeData = null;
+
+  if (!selectedFeeStudentId) {
+    $("feeDetailsPanel").classList.add("hidden");
+    return;
+  }
+
+  await loadSelectedStudentFees();
+});
+
+$("refreshFeeStudents").addEventListener("click", loadFeeStudents);
+$("refreshFeeDetails").addEventListener("click", loadSelectedStudentFees);
+
+$("totalFeeForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  hideMessage("feeMessage");
+
+  const id = selectedFeeStudentId;
+  const totalFee = Number($("totalFeeInput").value);
+
+  if (!id) {
+    showMessage("feeMessage", "Please select a student.");
+    return;
+  }
+
+  if (!Number.isFinite(totalFee) || totalFee < 0) {
+    showMessage("feeMessage", "Enter a valid total fee.");
+    return;
+  }
+
+  try {
+    const data = await api(
+      `/api/admin/students/${encodeURIComponent(id)}/fees`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ totalFee })
+      }
+    );
+
+    currentFeeData = data.fees;
+    renderFeeDetails();
+    showMessage("feeMessage", data.message || "Total fee saved.", "success");
+  } catch (error) {
+    showMessage("feeMessage", error.message);
+  }
+});
+
+$("paymentDate").value = localDateInputValue();
+
+$("feePaymentForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  hideMessage("feeMessage");
+
+  const id = selectedFeeStudentId;
+  const amount = Number($("paymentAmount").value);
+  const paymentDate = $("paymentDate").value;
+  const method = $("paymentMethod").value;
+  const note = $("paymentNote").value.trim();
+
+  if (!id) {
+    showMessage("feeMessage", "Please select a student.");
+    return;
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showMessage("feeMessage", "Payment amount must be greater than zero.");
+    return;
+  }
+
+  const pendingFee = Number(currentFeeData?.pendingFee) || 0;
+
+  if (amount > pendingFee) {
+    showMessage(
+      "feeMessage",
+      `Payment cannot exceed the pending fee of ${formatINR(pendingFee)}.`
+    );
+    return;
+  }
+
+  if (!paymentDate) {
+    showMessage("feeMessage", "Please select the payment date.");
+    return;
+  }
+
+  const button = $("recordPaymentButton");
+  button.disabled = true;
+
+  try {
+    const data = await api(
+      `/api/admin/students/${encodeURIComponent(id)}/fees/payments`,
+      {
+        method: "POST",
+        body: JSON.stringify({ amount, paymentDate, method, note })
+      }
+    );
+
+    currentFeeData = data.fees;
+    renderFeeDetails();
+
+    $("feePaymentForm").reset();
+    $("paymentDate").value = localDateInputValue();
+    $("paymentMethod").value = "Cash";
+
+    showMessage(
+      "feeMessage",
+      data.message || "Payment recorded successfully.",
+      "success"
+    );
+  } catch (error) {
+    showMessage("feeMessage", error.message);
+  } finally {
+    button.disabled = (Number(currentFeeData?.pendingFee) || 0) <= 0;
+  }
+});
+
+    $("passwordForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      hideMessage("passwordMessage");
+
+      const currentPassword = $("currentPassword").value;
+      const newPassword = $("newPassword").value;
+      const confirmPassword = $("confirmPassword").value;
+
+      if (newPassword.length < 8) {
+        showMessage("passwordMessage", "New password must be at least 8 characters.");
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showMessage("passwordMessage", "New password and confirmation do not match.");
+        return;
+      }
+
+      try {
+        const data = await api("/api/admin/change-password", {
+          method: "POST",
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        showMessage("passwordMessage", data.message || "Password updated.", "success");
+        $("passwordForm").reset();
+      } catch (error) {
+        showMessage("passwordMessage", error.message);
+      }
+    });
+
+    checkSession();
+  </script>
+</body>
+</html>
