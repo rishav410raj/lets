@@ -220,53 +220,31 @@ function courseFields(body) {
 
 // -------------------- FRONTEND STATIC FILES --------------------
 
-const frontendCandidates = [
-  path.join(__dirname, "..", "lets-talk-english-site"),
-  path.join(
-    process.env.HOME || "",
-    "domains",
-    "letstalkbgp.com",
-    "public_html",
-    "lets-talk-english-site"
-  ),
-  path.join(process.cwd(), "lets-talk-english-site"),
-];
+// -------------------- FRONTEND STATIC FILES --------------------
 
-const frontendPath = frontendCandidates.find((directory) =>
-  fs.existsSync(path.join(directory, "index.html"))
-);
+const frontendPath = path.join(__dirname, "public");
 
-if (frontendPath) {
-  console.log("Frontend directory found:", frontendPath);
-
-  app.use(express.static(frontendPath));
-
-  app.get("/", (req, res, next) => {
-    res.sendFile(
-      path.join(frontendPath, "index.html"),
-      (error) => {
-        if (error) next(error);
-      }
-    );
-  });
+if (!fs.existsSync(path.join(frontendPath, "index.html"))) {
+  console.error("Frontend index.html not found:", frontendPath);
 } else {
-  console.error(
-    "Frontend index.html not found. Checked directories:",
-    frontendCandidates
-  );
-
-  app.get("/", (req, res) => {
-    res.status(503).send(
-      "Website files are temporarily unavailable."
-    );
-  });
+  console.log("Frontend directory found:", frontendPath);
 }
 
-// -------------------- BASIC ROUTES --------------------
+app.use(express.static(frontendPath));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+  res.sendFile(path.join(frontendPath, "index.html"), (error) => {
+    if (error) {
+      console.error("Frontend serving error:", error.message);
+
+      if (!res.headersSent) {
+        res.status(500).send("Unable to load website.");
+      }
+    }
+  });
 });
+
+// -------------------- BASIC ROUTES --------------------
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -292,7 +270,7 @@ app.get("/api/admin/setup-status", async (req, res, next) => {
 app.get("/api/test-study-materials", (req, res) => {
   res.json({
     success: true,
-    message: "Study materials API route is reachable"
+    message: "Study materials API route is reachable",
   });
 });
 

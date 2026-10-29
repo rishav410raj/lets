@@ -1,0 +1,574 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manage Study Materials | Let's Talk English Class</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy: #173b70;
+      --gold: #e9a23b;
+      --bg: #f4f7fc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: Poppins, sans-serif;
+      color: #172b4d;
+    }
+
+    .topbar {
+      background: var(--navy);
+      color: white;
+      padding: 20px 0;
+    }
+
+    .container-main {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 6px 25px #172b4d0c;
+      margin-bottom: 25px;
+    }
+
+    .heading {
+      font-weight: 800;
+    }
+
+    .btn-main {
+      background: var(--navy);
+      color: white;
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 16px;
+      font-weight: 600;
+    }
+
+    .btn-main:hover {
+      background: #24538f;
+      color: white;
+    }
+
+    .btn-main:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .material-row {
+      border: 1px solid #e7edf5;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .muted {
+      color: #718096;
+      font-size: 13px;
+    }
+
+    .status {
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="container d-flex justify-content-between align-items-center gap-3 flex-wrap">
+      <div>
+        <div class="fw-bold">LET'S TALK ENGLISH CLASS</div>
+        <div class="small">Admin · Study Materials</div>
+      </div>
+
+      <a href="student-study-dashboard.html" class="btn btn-light">
+        ← Back to Dashboard
+      </a>
+    </div>
+  </header>
+
+  <main class="container-main">
+    <h1 class="heading h3 mb-2">Manage Study Materials</h1>
+    <p class="muted mb-4">Upload study resources for your students.</p>
+
+    <div id="pageMessage" class="alert status" role="status" hidden></div>
+
+    <section class="panel">
+      <h2 class="h5 fw-bold mb-4">Upload New Study Material</h2>
+
+      <div id="formMessage" class="alert status" role="status" hidden></div>
+
+      <form id="materialUploadForm" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="materialTitle" class="form-label fw-semibold">Title *</label>
+          <input
+            id="materialTitle"
+            name="title"
+            type="text"
+            class="form-control"
+            maxlength="150"
+            required
+          >
+        </div>
+
+        <div class="mb-3">
+          <label for="materialSubject" class="form-label fw-semibold">Subject *</label>
+          <input
+            id="materialSubject"
+            name="subject"
+            type="text"
+            class="form-control"
+            maxlength="100"
+            required
+          >
+        </div>
+
+        <div class="mb-3">
+          <label for="materialCourse" class="form-label fw-semibold">Course *</label>
+          <select id="materialCourse" name="course" class="form-select" required>
+            <option value="">Select Course</option>
+            <option value="Class 11">Class 11</option>
+            <option value="Class 12">Class 12</option>
+            <option value="English Honours">English Honours</option>
+            <option value="Spoken English">Spoken English</option>
+            <option value="General English">General English</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="materialDescription" class="form-label fw-semibold">
+            Description
+          </label>
+          <textarea
+            id="materialDescription"
+            name="description"
+            class="form-control"
+            rows="3"
+            maxlength="1000"
+          ></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label for="materialFile" class="form-label fw-semibold">Select File *</label>
+          <input
+            id="materialFile"
+            name="file"
+            type="file"
+            class="form-control"
+            accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg"
+            required
+          >
+          <div class="form-text">
+            Allowed: PDF, JPG or JPEG. Maximum file size: 10 MB.
+          </div>
+        </div>
+
+        <button id="uploadBtn" type="submit" class="btn-main">
+          Upload Study Material
+        </button>
+
+        <a href="student-study-dashboard.html" class="btn btn-outline-secondary ms-2">
+          Cancel
+        </a>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <h2 class="h5 fw-bold mb-0">Uploaded Study Materials</h2>
+
+        <button id="refreshBtn" class="btn btn-outline-primary btn-sm" type="button">
+          Refresh List
+        </button>
+      </div>
+
+      <div id="listMessage" class="muted mt-3" role="status">
+        Checking admin session...
+      </div>
+
+      <div id="materialsList"></div>
+    </section>
+  </main>
+
+  <script>
+    // Change this only if your backend uses another URL or port.
+    const API = "http://127.0.0.1:5000";
+    const LOGIN_PAGE = "lms-login.html";
+
+    const $ = id => document.getElementById(id);
+
+    const form = $("materialUploadForm");
+    const formMessage = $("formMessage");
+    const pageMessage = $("pageMessage");
+    const listMessage = $("listMessage");
+    const materialsList = $("materialsList");
+    const uploadBtn = $("uploadBtn");
+    const refreshBtn = $("refreshBtn");
+
+    let adminVerified = false;
+    let materials = [];
+
+    function showMessage(element, message, type = "info") {
+      element.hidden = false;
+      element.className = `alert alert-${type} status`;
+      element.textContent = message;
+    }
+
+    function hideMessage(element) {
+      element.hidden = true;
+      element.textContent = "";
+    }
+
+    async function fetchJSON(url, options = {}) {
+      const response = await fetch(url, {
+        credentials: "include",
+        ...options
+      });
+
+      const contentType = response.headers.get("content-type") || "";
+
+      if (!contentType.includes("application/json")) {
+        const body = await response.text();
+
+        console.error("Expected JSON but received:", {
+          url,
+          status: response.status,
+          response: body.slice(0, 300)
+        });
+
+        throw new Error(
+          `API returned non-JSON response (HTTP ${response.status}). Check backend URL and route.`
+        );
+      }
+
+      const data = await response.json();
+
+      if (!response.ok || data.success === false) {
+        throw new Error(
+          data.message || `Request failed (HTTP ${response.status}).`
+        );
+      }
+
+      return data;
+    }
+
+    async function verifyAdmin() {
+      if (sessionStorage.getItem("lmsLoginRole") !== "admin") {
+        window.location.replace(LOGIN_PAGE);
+        return false;
+      }
+
+      try {
+        const data = await fetchJSON(`${API}/api/admin/me`);
+
+        const admin = data.admin || data.user;
+
+        if (data.success !== true || !admin) {
+          throw new Error("Admin session could not be verified.");
+        }
+
+        adminVerified = true;
+        hideMessage(pageMessage);
+        return true;
+      } catch (error) {
+        adminVerified = false;
+
+        console.error("Admin session verification failed:", error);
+
+        // Do not automatically redirect on network errors or 404s.
+        // This allows you to see the actual problem on the page.
+        showMessage(
+          pageMessage,
+          error.message || "Unable to verify admin session.",
+          "danger"
+        );
+
+        listMessage.textContent = "Admin session verification failed.";
+        return false;
+      }
+    }
+
+    function getSafeFileUrl(value) {
+      try {
+        const url = new URL(value);
+
+        if (
+          url.protocol === "https:" &&
+          url.hostname === "res.cloudinary.com"
+        ) {
+          return url.href;
+        }
+      } catch (error) {
+        // Invalid URL.
+      }
+
+      return "";
+    }
+
+    function renderMaterials() {
+      materialsList.replaceChildren();
+
+      if (materials.length === 0) {
+        listMessage.textContent = "No study materials uploaded yet.";
+        return;
+      }
+
+      listMessage.textContent = `${materials.length} study material(s) found.`;
+
+      materials.forEach(material => {
+        const row = document.createElement("div");
+        row.className =
+          "material-row d-flex justify-content-between align-items-center gap-3 flex-wrap";
+
+        const details = document.createElement("div");
+
+        const title = document.createElement("div");
+        title.className = "fw-bold";
+        title.textContent =
+          material.title || material.originalFileName || "Study Material";
+
+        const meta = document.createElement("div");
+        meta.className = "muted";
+        meta.textContent = [
+          material.subject || "General",
+          material.course || "General English",
+          String(material.fileType || "file").toUpperCase()
+        ].join(" · ");
+
+        details.append(title, meta);
+
+        if (material.description) {
+          const description = document.createElement("div");
+          description.className = "muted mt-1";
+          description.textContent = material.description;
+          details.appendChild(description);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "d-flex gap-2";
+
+        const fileUrl = getSafeFileUrl(material.fileUrl || material.url);
+
+        if (fileUrl) {
+          const open = document.createElement("a");
+          open.className = "btn btn-outline-primary btn-sm";
+          open.href = fileUrl;
+          open.target = "_blank";
+          open.rel = "noopener noreferrer";
+          open.textContent = "Open";
+          actions.appendChild(open);
+        }
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn btn-outline-danger btn-sm";
+        deleteBtn.textContent = "Delete";
+
+        deleteBtn.addEventListener("click", () => {
+          deleteMaterial(material._id, deleteBtn);
+        });
+
+        actions.appendChild(deleteBtn);
+        row.append(details, actions);
+        materialsList.appendChild(row);
+      });
+    }
+
+    async function loadMaterials() {
+      materialsList.replaceChildren();
+      listMessage.textContent = "Loading materials...";
+
+      if (!adminVerified) {
+        listMessage.textContent = "Verify the admin session first.";
+        return;
+      }
+
+      try {
+        // server.js mounts adminStudyMaterialRouter at /api/study-materials
+        const data = await fetchJSON(`${API}/api/study-materials`);
+
+        materials = Array.isArray(data.materials) ? data.materials : [];
+        renderMaterials();
+      } catch (error) {
+        console.error("Loading materials failed:", error);
+
+        listMessage.textContent =
+          error.message || "Could not load study materials.";
+
+        if (error.message.includes("HTTP 401")) {
+          showMessage(
+            pageMessage,
+            "Your admin session is not active. Please log in again.",
+            "warning"
+          );
+        }
+      }
+    }
+
+    async function deleteMaterial(id, button) {
+      if (!adminVerified) {
+        showMessage(formMessage, "Verify your admin session first.", "warning");
+        return;
+      }
+
+      if (!id || !confirm("Delete this study material?")) {
+        return;
+      }
+
+      button.disabled = true;
+
+      try {
+        // Delete route is /api/study-materials/:id
+        const data = await fetchJSON(
+          `${API}/api/study-materials/${encodeURIComponent(id)}`,
+          { method: "DELETE" }
+        );
+
+        showMessage(
+          formMessage,
+          data.message || "Study material deleted successfully.",
+          "success"
+        );
+
+        await loadMaterials();
+      } catch (error) {
+        showMessage(
+          formMessage,
+          error.message || "Unable to delete material.",
+          "danger"
+        );
+
+        button.disabled = false;
+      }
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      hideMessage(formMessage);
+
+      if (!form.reportValidity()) {
+        return;
+      }
+
+      if (!adminVerified) {
+        showMessage(
+          formMessage,
+          "Admin session is not verified. Check the message at the top of the page.",
+          "warning"
+        );
+        return;
+      }
+
+      const file = $("materialFile").files[0];
+
+      if (!file) {
+        showMessage(
+          formMessage,
+          "Please select a PDF or JPG/JPEG file.",
+          "warning"
+        );
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        showMessage(
+          formMessage,
+          "File size must be 10 MB or less.",
+          "warning"
+        );
+        return;
+      }
+
+      const extension = file.name.split(".").pop().toLowerCase();
+
+      if (!["pdf", "jpg", "jpeg"].includes(extension)) {
+        showMessage(
+          formMessage,
+          "Only PDF, JPG and JPEG files are allowed.",
+          "warning"
+        );
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "Uploading...";
+
+      showMessage(
+        formMessage,
+        "Uploading study material. Please wait...",
+        "info"
+      );
+
+      try {
+        // Do not manually set Content-Type for FormData.
+        // The browser adds the multipart boundary automatically.
+        const data = await fetchJSON(`${API}/api/study-materials`, {
+          method: "POST",
+          body: new FormData(form)
+        });
+
+        showMessage(
+          formMessage,
+          data.message || "Study material uploaded successfully.",
+          "success"
+        );
+
+        form.reset();
+        await loadMaterials();
+      } catch (error) {
+        console.error("Study material upload failed:", error);
+
+        showMessage(
+          formMessage,
+          error.message || "Study material upload failed.",
+          "danger"
+        );
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = "Upload Study Material";
+      }
+    });
+
+    refreshBtn.addEventListener("click", async () => {
+      refreshBtn.disabled = true;
+
+      try {
+        const valid = await verifyAdmin();
+
+        if (valid) {
+          await loadMaterials();
+        }
+      } finally {
+        refreshBtn.disabled = false;
+      }
+    });
+
+    async function init() {
+      const valid = await verifyAdmin();
+
+      if (valid) {
+        await loadMaterials();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,556 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | Let's Talk English Class</title>
+<style>
+:root {
+  --navy:#142b4a;
+  --navy2:#1e416c;
+  --blue:#3269dc;
+  --bg:#f4f7fc;
+  --text:#1b2940;
+  --muted:#7b879b;
+  --border:#e8edf5;
+  --white:#fff;
+  --green:#15956a;
+  --red:#c24141;
+  --amber:#b7791f;
+  --shadow:0 8px 28px rgba(28,48,83,.055);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
+[hidden]{display:none!important}
+.app{min-height:100vh}
+.sidebar{position:fixed;inset:0 auto 0 0;width:250px;background:var(--navy);color:#fff;padding:26px 17px;display:flex;flex-direction:column;z-index:10}
+.brand{display:flex;align-items:center;gap:12px;padding:0 9px 30px;border-bottom:1px solid #ffffff19}
+.brand-icon{width:43px;height:43px;border-radius:13px;background:#fff;color:var(--navy);display:grid;place-items:center;font-size:20px;font-weight:900}
+.brand strong{font-size:14px;line-height:1.5;display:block}
+.brand small{color:#b7c7df;font-size:11px}
+.nav-label{margin:27px 10px 12px;color:#9eb2cf;font-size:10px;font-weight:800;letter-spacing:1.6px}
+.nav{display:grid;gap:6px}
+.nav button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:12px 13px;border:0;border-radius:10px;background:transparent;color:#cbd7e8;font-size:13px;font-weight:600}
+.nav button:hover,.nav button.active{background:#ffffff17;color:white}
+.nav button.active{box-shadow:inset 3px 0 #8eb6ff}
+.nav-icon{width:22px;text-align:center;font-size:17px}
+.sidebar-bottom{margin-top:auto;border-top:1px solid #ffffff19;padding:18px 8px 0}
+.profile-mini{display:flex;align-items:center;gap:10px}
+.avatar{width:39px;height:39px;border-radius:12px;background:#dce9ff;color:#214f9b;display:grid;place-items:center;font-weight:800}
+.profile-mini strong{display:block;font-size:12px}
+.profile-mini small{display:block;color:#b7c7df;margin-top:4px;font-size:11px}
+.main{margin-left:250px;min-height:100vh}
+.topbar{height:76px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 34px;gap:16px}
+.breadcrumb{color:var(--muted);font-size:12px}
+.breadcrumb strong{color:var(--text)}
+.top-actions{display:flex;align-items:center;gap:12px}
+.top-date{font-size:12px;color:var(--muted)}
+.btn{border:0;border-radius:9px;padding:10px 14px;font-weight:700;font-size:12px;transition:.2s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#2455bd;transform:translateY(-1px)}
+.btn-light{background:#eef3fb;color:#29466f}
+.btn-danger{background:#fff0f0;color:var(--red)}
+.mobile-toggle{display:none}
+.content{padding:31px 34px;max-width:1600px;margin:auto}
+.page-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:27px}
+.page-heading h1{font-size:25px;letter-spacing:-.7px;margin:0 0 8px}
+.page-heading p{font-size:13px;color:var(--muted);margin:0;line-height:1.6}
+.eyebrow{font-size:10px;letter-spacing:1.7px;font-weight:800;color:var(--blue);margin-bottom:10px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:23px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:15px;padding:21px;box-shadow:var(--shadow);min-width:0}
+.stat-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.stat-label{font-size:12px;color:var(--muted);font-weight:600}
+.stat-icon{height:40px;width:40px;border-radius:12px;display:grid;place-items:center;font-size:18px;background:#edf3ff}
+.stat-icon.green{background:#e5f7ef}
+.stat-icon.orange{background:#fff4e4}
+.stat-number{font-size:31px;font-weight:800;letter-spacing:-1px;margin:17px 0 7px}
+.stat-foot{font-size:11px;color:var(--muted)}
+.stat-foot strong{color:var(--green)}
+.columns{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(270px,.8fr);gap:20px;align-items:start}
+.panel{background:#fff;border:1px solid var(--border);border-radius:15px;padding:23px;box-shadow:var(--shadow);margin-bottom:20px;min-width:0}
+.panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
+.panel-heading h2{font-size:15px;margin:0 0 6px}
+.panel-heading p{font-size:12px;color:var(--muted);margin:0;line-height:1.5}
+.tag{display:inline-block;border-radius:20px;background:#e7f8ef;color:#137b53;font-size:10px;font-weight:800;padding:6px 9px}
+.quick-list{display:grid;gap:11px}
+.quick-action{display:flex;align-items:center;gap:13px;padding:14px;border:1px solid var(--border);border-radius:11px;background:white;text-align:left;width:100%;color:var(--text)}
+.quick-action:hover{border-color:#b8ccf4;background:#f8faff}
+.quick-icon{width:39px;height:39px;border-radius:11px;background:#edf3ff;display:grid;place-items:center;font-size:17px;flex-shrink:0}
+.quick-action strong{display:block;font-size:12px;margin-bottom:5px}
+.quick-action small{color:var(--muted);font-size:11px}
+.arrow{margin-left:auto;color:#8293ac;font-size:18px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0}
+.search-wrap{position:relative;flex:1;min-width:180px;max-width:430px}
+.search-wrap input,.field input{width:100%;border:1px solid #dfe6f0;border-radius:9px;padding:12px 13px;outline:none;background:#fff;color:var(--text);font-size:12px}
+.search-wrap input:focus,.field input:focus{border-color:#7da4ef;box-shadow:0 0 0 3px #3269dc14}
+.table-wrap{width:100%;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{padding:14px 12px;border-bottom:1px solid #edf0f6;text-align:left;font-size:12px;white-space:nowrap}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);background:#fafbfd}
+td{color:#40506a}
+td:first-child{font-weight:700;color:#2b4265}
+.status{display:inline-block;padding:6px 9px;border-radius:20px;font-size:10px;font-weight:800;background:#e1f7eb;color:#16734f}
+.status.pending{background:#fff2d9;color:#996313}
+.message{font-size:12px;line-height:1.6;color:var(--muted)}
+.error{color:var(--red)!important}
+.success{color:var(--green)!important}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:8px}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.credentials{background:#effaf4;border:1px solid #c9ecd8;border-radius:12px;padding:17px;margin-top:18px;overflow-wrap:anywhere}
+.credentials h3{margin:0 0 8px;font-size:14px;color:#176c49}
+.credential-row{margin:14px 0;font-size:12px}
+.credential-value{font-weight:800;color:#145c3e;margin-top:5px;user-select:all}
+.login-screen{max-width:430px;margin:70px auto;padding:0 20px}
+.login-screen .panel{padding:30px}
+.login-screen h1{font-size:23px;margin:0 0 8px}
+.login-screen .field{margin:17px 0}
+.login-screen .btn{width:100%;padding:13px}
+.login-brand{display:flex;gap:12px;align-items:center;margin-bottom:25px}
+.login-brand .brand-icon{background:var(--navy);color:#fff}
+.login-brand strong{font-size:13px}
+.login-brand small{display:block;color:var(--muted);margin-top:4px}
+.footer{padding:5px 0 22px;text-align:center;color:#98a4b7;font-size:11px}
+@media(max-width:1050px){
+ .sidebar{width:220px}.main{margin-left:220px}
+ .content{padding:25px 22px}.topbar{padding:0 22px}
+ .stats{gap:12px}.stat-card{padding:17px}.stat-number{font-size:27px}
+ .columns{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+ .sidebar{transform:translateX(-100%);width:260px;transition:transform .25s;box-shadow:15px 0 40px #101c3320}
+ .sidebar.open{transform:translateX(0)}
+ .main{margin-left:0}.topbar{height:65px;padding:0 16px}
+ .mobile-toggle{display:inline-grid;place-items:center;width:36px;height:36px;background:#eef3fb;color:var(--navy);border-radius:9px;border:0;font-size:19px}
+ .top-date{display:none}.content{padding:23px 15px}
+ .page-heading{align-items:flex-start}.page-heading h1{font-size:22px}
+ .stats{grid-template-columns:1fr 1fr}.stat-card:last-child{grid-column:1/-1}
+ .stat-number{font-size:27px}.panel{padding:17px}
+ .form-grid{grid-template-columns:1fr}.top-actions{gap:7px}
+}
+@media(max-width:390px){.stats{grid-template-columns:1fr}.stat-card:last-child{grid-column:auto}.page-heading .btn{padding:9px;font-size:11px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon">L</div>
+      <div><strong>LET'S TALK<br>ENGLISH CLASS</strong><small>Institute Management</small></div>
+    </div>
+    <div class="nav-label">WORKSPACE</div>
+    <nav class="nav">
+      <button class="active" data-section="overview"><span class="nav-icon">▦</span> Overview</button>
+      <button data-section="students"><span class="nav-icon">♙</span> Students</button>
+      <button data-section="create"><span class="nav-icon">＋</span> Create Student</button>
+      <button data-section="quick"><span class="nav-icon">⚡</span> Quick Actions</button>
+    </nav>
+    <div class="nav-label">ACCOUNT</div>
+    <nav class="nav">
+      <button id="sidebarRefresh"><span class="nav-icon">↻</span> Refresh Data</button>
+      <button id="sidebarLogout"><span class="nav-icon">⇥</span> Logout</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="profile-mini">
+        <div class="avatar">AD</div>
+        <div><strong id="sidebarAdminName">Administrator</strong><small>Institute Admin</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="top-actions">
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation">☰</button>
+        <div class="breadcrumb">Workspace / <strong id="breadcrumbTitle">Overview</strong></div>
+      </div>
+      <div class="top-actions">
+        <span class="top-date" id="todayDate"></span>
+        <button class="btn btn-danger" id="logoutBtn" hidden>Logout ↗</button>
+      </div>
+    </header>
+
+    <main class="content" id="dashboard" hidden>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">INSTITUTE OVERVIEW</div>
+          <h1 id="greeting">Good morning 👋</h1>
+          <p>Manage your students and keep your institute running smoothly.</p>
+        </div>
+        <button class="btn btn-primary" id="headingCreate">＋ Create Student</button>
+      </div>
+
+      <section id="overviewSection">
+        <div class="stats">
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-label">Registered Students</span><span class="stat-icon">♙</span></div>
+            <div class="stat-number" id="totalStudents">0</div>
+            <div class="stat-foot">Total student accounts</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-label">Completed Profiles</span><span class="stat-icon green">✓</span></div>
+            <div class="stat-number" id="completeStudents">0</div>
+            <div class="stat-foot"><strong id="completeRate">0%</strong> of registered students</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-label">Pending Profiles</span><span class="stat-icon orange">◷</span></div>
+            <div class="stat-number" id="pendingStudents">0</div>
+            <div class="stat-foot">Awaiting profile completion</div>
+          </article>
+        </div>
+
+        <div class="columns">
+          <section class="panel">
+            <div class="panel-heading">
+              <div><h2>Recently Registered Students</h2><p>Latest student accounts from your database</p></div>
+              <span class="tag">LIVE DATA</span>
+            </div>
+            <div class="table-wrap">
+              <table style="min-width:500px">
+                <thead><tr><th>Student</th><th>Course</th><th>Profile</th></tr></thead>
+                <tbody id="recentBody"></tbody>
+              </table>
+            </div>
+            <p id="recentMessage" class="message"></p>
+            <button class="btn btn-light" id="viewAllStudents">View all students →</button>
+          </section>
+
+          <section class="panel" id="quickSection">
+            <div class="panel-heading"><div><h2>Quick Actions</h2><p>Common admin tasks</p></div></div>
+            <div class="quick-list">
+              <button class="quick-action" data-go="create"><span class="quick-icon">＋</span><span><strong>Create student account</strong><small>Generate student ID and password</small></span><span class="arrow">›</span></button>
+              <button class="quick-action" data-go="students"><span class="quick-icon">♙</span><span><strong>Manage students</strong><small>Search student records</small></span><span class="arrow">›</span></button>
+              <button class="quick-action" id="quickRefresh"><span class="quick-icon">↻</span><span><strong>Refresh dashboard</strong><small>Load the latest records</small></span><span class="arrow">›</span></button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="createSection" hidden>
+        <div class="panel">
+          <div class="panel-heading"><div><h2>Create Student Account</h2><p>Generate login credentials for a new student.</p></div><span class="tag">ADMIN TOOL</span></div>
+          <form id="createStudentForm">
+            <div class="form-grid">
+              <div class="field"><label for="studentName">Student full name</label><input id="studentName" name="fullName" minlength="2" maxlength="100" placeholder="Enter full name" required></div>
+              <div class="field"><label for="studentEmail">Student email address</label><input id="studentEmail" name="email" type="email" placeholder="student@example.com" required></div>
+            </div>
+            <div class="form-actions"><button class="btn btn-primary" id="createStudentBtn" type="submit">Create Student Account</button></div>
+          </form>
+          <p id="createMessage" class="message" role="status"></p>
+          <div id="credentialsPanel" class="credentials" hidden>
+            <h3>✓ Student account created</h3><p class="message">Save these credentials and share them securely with the student.</p>
+            <div class="credential-row">Student ID<div id="generatedStudentId" class="credential-value"></div></div>
+            <div class="credential-row">Temporary Password<div id="generatedPassword" class="credential-value"></div></div>
+            <button class="btn btn-primary" id="copyCredentialsBtn" type="button">Copy Credentials</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="studentsSection" hidden>
+        <div class="panel">
+          <div class="panel-heading"><div><h2>Registered Students</h2><p>Search and review student accounts.</p></div><span class="tag" id="studentCountTag">0 STUDENTS</span></div>
+          <div class="toolbar">
+            <div class="search-wrap"><input id="searchInput" type="search" placeholder="⌕  Search name, email, phone or ID"></div>
+            <button class="btn btn-primary" id="refreshBtn" type="button">↻ Refresh</button>
+          </div>
+          <p id="listMessage" class="message" role="status"></p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Student ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Course</th><th>Profile Status</th><th>Registered On</th></tr></thead>
+              <tbody id="studentsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">© <span id="year"></span> Let's Talk English Class · Admin Workspace</div>
+    </main>
+
+    <section class="login-screen" id="loginPanel">
+      <div class="login-brand"><div class="brand-icon">L</div><div><strong>LET'S TALK ENGLISH CLASS</strong><small>Institute Management Portal</small></div></div>
+      <div class="panel">
+        <div class="eyebrow">ADMINISTRATOR ACCESS</div>
+        <h1>Welcome back</h1><p class="message">Sign in to manage your institute.</p>
+        <form id="loginForm">
+          <div class="field"><label for="email">Admin email</label><input id="email" type="email" autocomplete="username" placeholder="Enter admin email" required></div>
+          <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Enter password" required></div>
+          <button class="btn btn-primary" id="loginBtn" type="submit">Sign in to dashboard →</button>
+        </form>
+        <p id="loginMessage" class="message" role="status"></p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const API = "https://letstalkbgp.com/api/admin";
+
+const $ = id => document.getElementById(id);
+const loginPanel = $("loginPanel");
+const dashboard = $("dashboard");
+const loginForm = $("loginForm");
+const loginMessage = $("loginMessage");
+const listMessage = $("listMessage");
+const studentsBody = $("studentsBody");
+const searchInput = $("searchInput");
+const logoutBtn = $("logoutBtn");
+const createStudentForm = $("createStudentForm");
+const createMessage = $("createMessage");
+const credentialsPanel = $("credentialsPanel");
+
+let students = [];
+let latestCredentials = null;
+let admin = null;
+
+$("todayDate").textContent = new Date().toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+$("year").textContent = new Date().getFullYear();
+
+async function request(url, options = {}) {
+  const response = await fetch(url,{
+    ...options,
+    credentials:"include",
+    headers:{
+      ...(options.body ? {"Content-Type":"application/json"} : {}),
+      ...options.headers
+    }
+  });
+  const data = await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(data.message || `Request failed: ${response.status}`);
+  return data;
+}
+
+function showLogin() {
+  loginPanel.hidden = false;
+  dashboard.hidden = true;
+  logoutBtn.hidden = true;
+  $("adminName")?.replaceChildren();
+}
+
+function showDashboard(currentAdmin) {
+  admin = currentAdmin || {};
+  loginPanel.hidden = true;
+  dashboard.hidden = false;
+  logoutBtn.hidden = false;
+  $("sidebarAdminName").textContent = admin.name || "Administrator";
+  const name = (admin.name || "Administrator").trim().split(/\s+/)[0];
+  const hour = new Date().getHours();
+  $("greeting").textContent = (hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening") + ", " + name + " 👋";
+}
+
+async function checkAdmin() {
+  try {
+    const data = await request(API + "/me");
+    showDashboard(data.admin);
+    await loadStudents();
+  } catch(error) {
+    showLogin();
+    loginMessage.textContent = "Please log in to continue.";
+    loginMessage.className = "message error";
+  }
+}
+
+loginForm.addEventListener("submit",async event=>{
+  event.preventDefault();
+  const btn = $("loginBtn");
+  btn.disabled = true;
+  btn.textContent = "Signing in...";
+  loginMessage.textContent = "";
+  try {
+    const data = await request(API + "/login",{
+      method:"POST",
+      body:JSON.stringify({
+        email:$("email").value.trim(),
+        password:$("password").value
+      })
+    });
+    loginForm.reset();
+    loginMessage.textContent = "";
+    showDashboard(data.admin);
+    await loadStudents();
+  } catch(error) {
+    loginMessage.textContent = error.message;
+    loginMessage.className = "message error";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Sign in to dashboard →";
+  }
+});
+
+async function loadStudents() {
+  listMessage.textContent = "Loading student records...";
+  listMessage.className = "message";
+  studentsBody.replaceChildren();
+  try {
+    const data = await request(API + "/students");
+    students = Array.isArray(data.students) ? data.students : [];
+    const complete = students.filter(s=>s.registrationCompleted===true).length;
+    $("totalStudents").textContent = students.length;
+    $("completeStudents").textContent = complete;
+    $("pendingStudents").textContent = students.length - complete;
+    $("completeRate").textContent = (students.length ? Math.round(complete/students.length*100) : 0) + "%";
+    $("studentCountTag").textContent = students.length + " STUDENTS";
+    renderStudents();
+    renderRecent();
+  } catch(error) {
+    listMessage.textContent = error.message;
+    listMessage.className = "message error";
+    $("recentMessage").textContent = error.message;
+    if(error.message.toLowerCase().includes("login")) showLogin();
+  }
+}
+
+createStudentForm.addEventListener("submit",async event=>{
+  event.preventDefault();
+  const btn = $("createStudentBtn");
+  const fullName = $("studentName").value.trim();
+  const email = $("studentEmail").value.trim();
+  btn.disabled = true;
+  btn.textContent = "Creating account...";
+  createMessage.textContent = "";
+  createMessage.className = "message";
+  credentialsPanel.hidden = true;
+  latestCredentials = null;
+  try {
+    const data = await request(API + "/students",{
+      method:"POST",
+      body:JSON.stringify({fullName,email})
+    });
+    if(!data.credentials) throw new Error("Account created, but credentials were not returned by the server.");
+    latestCredentials = data.credentials;
+    $("generatedStudentId").textContent = data.credentials.studentId;
+    $("generatedPassword").textContent = data.credentials.temporaryPassword;
+    credentialsPanel.hidden = false;
+    createMessage.textContent = data.message || "Student account created successfully.";
+    createMessage.className = "message success";
+    createStudentForm.reset();
+    await loadStudents();
+  } catch(error) {
+    createMessage.textContent = error.message;
+    createMessage.className = "message error";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Create Student Account";
+  }
+});
+
+$("copyCredentialsBtn").addEventListener("click",async()=>{
+  if(!latestCredentials) return;
+  const text = "Let's Talk English Class Student Login\nStudent ID: " + latestCredentials.studentId + "\nTemporary Password: " + latestCredentials.temporaryPassword;
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copyCredentialsBtn").textContent = "Copied ✓";
+  } catch {
+    createMessage.textContent = "Browser copy permission blocked. Select and copy the credentials manually.";
+    createMessage.className = "message error";
+  }
+});
+
+function cell(value) {
+  const td = document.createElement("td");
+  td.textContent = value == null || value === "" ? "—" : String(value);
+  return td;
+}
+
+function statusBadge(student) {
+  const td = document.createElement("td");
+  const badge = document.createElement("span");
+  const complete = student.registrationCompleted === true;
+  badge.className = "status" + (complete ? "" : " pending");
+  badge.textContent = complete ? "Complete" : "Pending";
+  td.appendChild(badge);
+  return td;
+}
+
+function renderStudents() {
+  const query = searchInput.value.trim().toLowerCase();
+  const filtered = students.filter(s=>[
+    s.studentId,s.fullName,s.name,s.email,s.phone,s.course,s.courseName
+  ].filter(Boolean).join(" ").toLowerCase().includes(query));
+  studentsBody.replaceChildren();
+
+  if(!filtered.length) {
+    listMessage.textContent = students.length ? "No students match your search." : "No registered students found yet.";
+    return;
+  }
+  listMessage.textContent = "Showing " + filtered.length + " of " + students.length + " students.";
+  filtered.forEach(student=>{
+    const row = document.createElement("tr");
+    row.append(
+      cell(student.studentId),
+      cell(student.fullName || student.name),
+      cell(student.email),
+      cell(student.phone),
+      cell(student.course || student.courseName),
+      statusBadge(student),
+      cell(student.createdAt ? new Date(student.createdAt).toLocaleDateString() : "—")
+    );
+    studentsBody.appendChild(row);
+  });
+}
+
+function renderRecent() {
+  const body = $("recentBody");
+  body.replaceChildren();
+  const latest = [...students].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,5);
+  if(!latest.length) {
+    $("recentMessage").textContent = "New student accounts will appear here.";
+    return;
+  }
+  $("recentMessage").textContent = "Showing the latest " + latest.length + " accounts.";
+  latest.forEach(student=>{
+    const row = document.createElement("tr");
+    const name = document.createElement("td");
+    name.textContent = student.fullName || student.name || "—";
+    const course = cell(student.course || student.courseName);
+    row.append(name,course,statusBadge(student));
+    body.appendChild(row);
+  });
+}
+
+searchInput.addEventListener("input",renderStudents);
+$("refreshBtn").addEventListener("click",loadStudents);
+$("quickRefresh").addEventListener("click",loadStudents);
+$("sidebarRefresh").addEventListener("click",loadStudents);
+
+function setSection(section) {
+  const titles = {overview:"Overview",students:"Students",create:"Create Student",quick:"Quick Actions"};
+  $("breadcrumbTitle").textContent = titles[section] || "Overview";
+  $("overviewSection").hidden = section !== "overview" && section !== "quick";
+  $("createSection").hidden = section !== "create";
+  $("studentsSection").hidden = section !== "students";
+  document.querySelectorAll("[data-section]").forEach(btn=>btn.classList.toggle("active",btn.dataset.section===section));
+  $("sidebar").classList.remove("open");
+  if(section==="students") renderStudents();
+  if(section==="create") $("studentName").focus();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll("[data-section]").forEach(btn=>btn.addEventListener("click",()=>setSection(btn.dataset.section)));
+document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click",()=>setSection(btn.dataset.go)));
+$("headingCreate").addEventListener("click",()=>setSection("create"));
+$("viewAllStudents").addEventListener("click",()=>setSection("students"));
+$("mobileToggle").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
+
+async function logout() {
+  logoutBtn.disabled = true;
+  try {
+    await request(API + "/logout",{method:"POST"});
+  } catch(error) {
+    listMessage.textContent = "Logout request: " + error.message;
+    listMessage.className = "message error";
+  } finally {
+    logoutBtn.disabled = false;
+    showLogin();
+  }
+}
+logoutBtn.addEventListener("click",logout);
+$("sidebarLogout").addEventListener("click",logout);
+
+checkAdmin();
+</script>
+</body>
+</html>

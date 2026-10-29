@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LMS Login | Let's Talk English Class</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background:
+    linear-gradient(
+      rgba(16, 37, 66, 0.25),
+      rgba(30, 96, 145, 0.25)
+    ),
+    url("./images/lms-login-bg.png") center / cover no-repeat fixed;
+}
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      padding: 35px;
+      border-radius: 16px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand h1 {
+      color: #102542;
+      font-size: 25px;
+      margin-bottom: 8px;
+    }
+
+    .brand p {
+      color: #667085;
+      font-size: 14px;
+    }
+
+    .role-options {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .role-option {
+      flex: 1;
+      padding: 12px 5px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: #344054;
+      background: #fff;
+    }
+
+    .role-option.active {
+      background: #102542;
+      border-color: #102542;
+      color: #fff;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #344054;
+      font-size: 14px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: #1e6091;
+      box-shadow: 0 0 0 3px rgba(30, 96, 145, 0.12);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      background: #102542;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .login-btn:hover {
+      background: #1e6091;
+    }
+
+    .login-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .message {
+      display: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .message.error {
+      display: block;
+      background: #fef3f2;
+      color: #b42318;
+    }
+
+    .message.success {
+      display: block;
+      background: #ecfdf3;
+      color: #027a48;
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 22px;
+      text-align: center;
+      text-decoration: none;
+      color: #1e6091;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 420px) {
+      .login-card {
+        padding: 25px 20px;
+      }
+
+      .brand h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="login-card">
+    <div class="brand">
+      <h1>Let's Talk English Class</h1>
+      <p>Learning Management System</p>
+    </div>
+
+    <div class="role-options">
+      <button type="button" class="role-option active" data-role="student">
+        Student Login
+      </button>
+
+      <button type="button" class="role-option" data-role="admin">
+        Admin Login
+      </button>
+    </div>
+
+    <div id="formMessage" class="message" role="alert"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email / Username</label>
+        <input
+          type="text"
+          id="email"
+          name="email"
+          placeholder="Enter email or username"
+          autocomplete="username"
+          required
+        >
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+
+      <button type="submit" class="login-btn" id="loginBtn">
+        Login as Student
+      </button>
+    </form>
+
+    <a href="index.html" class="back-link">← Back to Website</a>
+  </main>
+
+  <script>
+    const API = "http://127.0.0.1:5000";
+    const DASHBOARD = "student-study-dashboard.html";
+
+    const loginForm = document.getElementById("loginForm");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const loginBtn = document.getElementById("loginBtn");
+    const formMessage = document.getElementById("formMessage");
+    const roleButtons = document.querySelectorAll(".role-option");
+
+    let selectedRole = "student";
+
+    function showMessage(message, type = "error") {
+      formMessage.textContent = message;
+      formMessage.className = `message ${type}`;
+    }
+
+    function clearMessage() {
+      formMessage.textContent = "";
+      formMessage.className = "message";
+    }
+
+    roleButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedRole = button.dataset.role;
+
+        roleButtons.forEach((item) => {
+          item.classList.toggle("active", item === button);
+        });
+
+        loginBtn.textContent =
+          selectedRole === "admin"
+            ? "Login as Admin"
+            : "Login as Student";
+
+        clearMessage();
+      });
+    });
+
+    async function readResponse(response) {
+      const text = await response.text();
+
+      try {
+        return text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error("Server se invalid response mila. Backend check karein.");
+      }
+    }
+
+    async function verifySession(role) {
+      const endpoint =
+        role === "admin"
+          ? "/api/admin/me"
+          : "/api/student/me";
+
+      const response = await fetch(`${API}${endpoint}`, {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const data = await readResponse(response);
+
+      if (!response.ok || data.success !== true) {
+        throw new Error(
+          data.message || "Login session verify nahi hui. Dobara try karein."
+        );
+      }
+
+      return data;
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearMessage();
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        showMessage("Email/username aur password enter karein.");
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Logging in...";
+
+      try {
+        const loginEndpoint =
+          selectedRole === "admin"
+            ? "/api/admin/login"
+            : "/api/student/login";
+
+        const response = await fetch(`${API}${loginEndpoint}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify(
+  selectedRole === "admin"
+    ? {
+        email,
+        password
+      }
+    : {
+        studentId: email,
+        password
+      }
+)
+        });
+
+        const data = await readResponse(response);
+
+        if (!response.ok || data.success !== true) {
+          throw new Error(
+            data.message || "Login failed. Credentials check karein."
+          );
+        }
+
+        await verifySession(selectedRole);
+
+        sessionStorage.setItem("lmsLoginRole", selectedRole);
+
+        window.location.replace(DASHBOARD);
+      } catch (error) {
+        showMessage(
+          error.message ||
+          "Login nahi ho saka. Backend server aur credentials check karein."
+        );
+
+        loginBtn.disabled = false;
+        loginBtn.textContent =
+          selectedRole === "admin"
+            ? "Login as Admin"
+            : "Login as Student";
+      }
+    });
+  </script>
+</body>
+</html>

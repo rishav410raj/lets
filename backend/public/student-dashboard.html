@@ -1,0 +1,746 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d4ed8">
+  <title>Student Dashboard | Let's Talk English Class</title>
+
+  <style>
+    
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --ink: #172033;
+  --muted: #64748b;
+  --line: #e8edf5;
+  --page: #f5f7fc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at top left, #e0e7ff 0, transparent 36%),
+    var(--page);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  transition: background .2s, transform .2s, box-shadow .2s;
+}
+
+button:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Top navigation */
+
+.topbar {
+  min-height: 82px;
+  padding: 15px 5%;
+  background: rgba(255,255,255,.92);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(16px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  color: #172554;
+  text-decoration: none;
+}
+
+.brand-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  color: #fff;
+  font-weight: 900;
+  background: linear-gradient(135deg, #4f46e5, #818cf8);
+  box-shadow: 0 7px 18px #4f46e538;
+}
+
+.brand-name,
+.brand-caption {
+  display: block;
+}
+
+.brand-name {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.brand-caption {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+/* Buttons */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  padding: 11px 17px;
+  font-weight: 700;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  box-shadow: 0 7px 16px #4f46e52b;
+}
+
+.btn-light {
+  color: #3730a3;
+  background: #eef2ff;
+  border-color: #e0e7ff;
+}
+
+.btn-light:hover:not(:disabled) {
+  background: #e0e7ff;
+}
+
+.btn-danger-outline {
+  color: #dc2626;
+  background: #fff;
+  border-color: #fecaca;
+}
+
+.btn-danger-outline:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+/* Main content */
+
+main {
+  width: min(1160px, 92%);
+  margin: 42px auto 55px;
+}
+
+.welcome {
+  margin-bottom: 28px;
+  padding: 30px;
+  border-radius: 23px;
+  color: #fff;
+  background: linear-gradient(120deg, #312e81, #4f46e5 62%, #818cf8);
+  box-shadow: 0 15px 36px #3730a31f;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome::after {
+  content: "";
+  position: absolute;
+  width: 230px;
+  height: 230px;
+  border: 1px solid #ffffff26;
+  border-radius: 50%;
+  right: -65px;
+  top: -100px;
+  box-shadow: 0 0 0 25px #ffffff09,
+              0 0 0 50px #ffffff08;
+  pointer-events: none;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: #c7d2fe;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.welcome h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 39px);
+  letter-spacing: -.8px;
+}
+
+.welcome p:last-child {
+  margin: 11px 0 0;
+  color: #e0e7ff;
+  line-height: 1.7;
+}
+
+/* Messages */
+
+.message {
+  padding: 17px 20px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 22px;
+  box-shadow: 0 5px 20px #0f172a05;
+}
+
+.message.error {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
+}
+
+.message.success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+/* Cards */
+
+.profile-card,
+.panel {
+  background: rgba(255,255,255,.96);
+  border: 1px solid var(--line);
+  border-radius: 21px;
+  padding: clamp(20px, 3vw, 32px);
+  box-shadow: 0 10px 35px #17255409;
+}
+
+.profile-card {
+  animation: cardEnter .4s ease both;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-banner {
+  display: flex;
+  align-items: center;
+  gap: 21px;
+  padding: 25px;
+  border: 1px solid #e0e7ff;
+  border-radius: 18px;
+  background: linear-gradient(120deg, #eef2ff, #f5f3ff 65%, #eff6ff);
+}
+
+.avatar {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  display: grid;
+  place-items: center;
+  border-radius: 25px;
+  color: #fff;
+  background: linear-gradient(135deg, #4338ca, #818cf8);
+  border: 4px solid #fff;
+  box-shadow: 0 7px 20px #4338ca26;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.profile-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-main h2 {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+  color: #1e1b4b;
+  font-size: 24px;
+  letter-spacing: -.4px;
+}
+
+.profile-main p {
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 13px;
+  padding: 7px 12px;
+  border-radius: 30px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #16a34a;
+}
+
+/* Profile information */
+
+.section-title {
+  margin: 32px 0 16px;
+  padding-left: 12px;
+  border-left: 4px solid var(--primary);
+  color: #1e293b;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  min-width: 0;
+  padding: 19px;
+  border: 1px solid #edf0f6;
+  border-radius: 14px;
+  background: #fafbff;
+  transition: border-color .2s, transform .2s, background .2s;
+}
+
+.field:hover {
+  border-color: #c7d2fe;
+  background: #fff;
+  transform: translateY(-2px);
+}
+
+.field span {
+  display: block;
+  margin-bottom: 9px;
+  color: #818ba0;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.field strong {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+/* Bottom information panels */
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.panel {
+  padding: 24px;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.panel:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px #1725540d;
+}
+
+.panel h3 {
+  margin: 0 0 10px;
+  color: #312e81;
+  font-size: 16px;
+}
+
+.panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.notice {
+  margin-top: 25px;
+  padding: 17px 19px;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* Footer */
+
+footer {
+  text-align: center;
+  padding: 25px 15px 32px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Responsive layout */
+
+@media (max-width: 680px) {
+  .topbar {
+    padding: 14px 4%;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions button {
+    flex: 1;
+  }
+
+  main {
+    margin-top: 25px;
+  }
+
+  .welcome {
+    padding: 24px 20px;
+    border-radius: 18px;
+  }
+
+  .profile-banner {
+    align-items: flex-start;
+    gap: 15px;
+    padding: 17px;
+  }
+
+  .avatar {
+    width: 65px;
+    height: 65px;
+    flex-basis: 65px;
+    border-radius: 19px;
+    font-size: 24px;
+  }
+
+  .profile-main h2 {
+    font-size: 19px;
+  }
+
+  .details,
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 390px) {
+  .profile-banner {
+    flex-direction: column;
+  }
+
+  .header-actions {
+    gap: 7px;
+  }
+
+  .btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Let's Talk English Class home">
+      <span class="brand-icon">LT</span>
+      <span>
+        <strong class="brand-name">Let's Talk</strong>
+        <small class="brand-caption">ENGLISH CLASS</small>
+      </span>
+    </a>
+
+    <div class="header-actions">
+      <button type="button" id="refreshBtn" class="btn btn-light">
+        ↻ Refresh
+      </button>
+
+      <button type="button" id="logoutBtn" class="btn btn-danger-outline">
+        ↪ Logout
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="welcome">
+      <p class="eyebrow">Student Portal</p>
+      <h1>Student Dashboard</h1>
+      <p>View your profile and latest course information.</p>
+    </section>
+
+    <div id="message" class="message" role="status" aria-live="polite">
+      Loading your profile...
+    </div>
+
+    <section id="profileCard" class="profile-card" hidden>
+      <div class="profile-banner">
+        <div class="avatar" id="avatar">S</div>
+
+        <div class="profile-main">
+          <h2 id="studentName">Student</h2>
+          <p id="studentLoginId"></p>
+
+          <span class="status">
+            <span class="status-dot"></span>
+            Student Account
+          </span>
+        </div>
+      </div>
+
+      <h3 class="section-title">Personal Information</h3>
+
+      <div class="details">
+        <div class="field"><span>Full Name</span><strong id="fullName">—</strong></div>
+        <div class="field"><span>Student Login ID</span><strong id="loginId">—</strong></div>
+        <div class="field"><span>Email Address</span><strong id="email">—</strong></div>
+        <div class="field"><span>Phone Number</span><strong id="phone">—</strong></div>
+        <div class="field"><span>Date of Birth</span><strong id="dateOfBirth">—</strong></div>
+        <div class="field"><span>Gender</span><strong id="gender">—</strong></div>
+      </div>
+
+      <h3 class="section-title">Course &amp; Education</h3>
+
+      <div class="details">
+        <div class="field"><span>Course</span><strong id="course">—</strong></div>
+        <div class="field"><span>Qualification</span><strong id="qualification">—</strong></div>
+        <div class="field"><span>School / College</span><strong id="schoolCollege">—</strong></div>
+        <div class="field"><span>Session</span><strong id="session">—</strong></div>
+      </div>
+
+      <h3 class="section-title">Address Information</h3>
+
+      <div class="details">
+        <div class="field"><span>Address</span><strong id="address">—</strong></div>
+        <div class="field"><span>City</span><strong id="city">—</strong></div>
+        <div class="field"><span>State</span><strong id="state">—</strong></div>
+        <div class="field"><span>PIN Code</span><strong id="pinCode">—</strong></div>
+        <div class="field"><span>Guardian Name</span><strong id="guardianName">—</strong></div>
+        <div class="field"><span>Guardian Phone</span><strong id="guardianPhone">—</strong></div>
+      </div>
+
+      <div class="bottom-grid">
+        <div class="panel">
+          <h3>Course Information</h3>
+          <p>Your course details are loaded from the institute's current records. Refresh to check for updates.</p>
+        </div>
+
+        <div class="panel">
+          <h3>Need to update your details?</h3>
+          <p>Your profile information is managed by the institute. Contact the administrator to correct personal details.</p>
+        </div>
+      </div>
+
+      <div class="notice">
+        For your security, only your own student account information is displayed here.
+        If any information is incorrect, contact the institute administrator.
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; <span id="year"></span> Let's Talk English Class · Student Portal
+  </footer>
+
+  <script>
+    const API = "http://127.0.0.1:5000/api/student";
+
+    const $ = id => document.getElementById(id);
+
+    const message = $("message");
+    const profileCard = $("profileCard");
+    const logoutBtn = $("logoutBtn");
+    const refreshBtn = $("refreshBtn");
+    const avatar = $("avatar");
+
+    $("year").textContent = new Date().getFullYear();
+
+    function setText(id, value) {
+      $(id).textContent =
+        value === null || value === undefined || value === ""
+          ? "—"
+          : String(value);
+    }
+
+    function showMessage(text, type = "") {
+      message.textContent = text;
+      message.className = "message" + (type ? " " + type : "");
+      message.hidden = false;
+      profileCard.hidden = true;
+    }
+
+    function formatDate(value) {
+      if (!value) return "—";
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) return "—";
+
+      return date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function renderAvatar(name) {
+      avatar.textContent = (name || "S").trim().charAt(0).toUpperCase();
+    }
+
+    async function loadProfile() {
+      showMessage("Loading your latest profile...");
+
+      try {
+        const response = await fetch(`${API}/me`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            Accept: "application/json"
+          }
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401 || response.status === 403) {
+          window.location.replace("student-login.html");
+          return;
+        }
+
+        if (!response.ok || !data.success || !data.student) {
+          throw new Error(data.message || "Unable to load your profile.");
+        }
+
+        const student = data.student;
+
+        setText("studentName", student.fullName);
+        setText("studentLoginId", `Login ID: ${student.studentId || "—"}`);
+
+        setText("fullName", student.fullName);
+        setText("loginId", student.studentId);
+        setText("email", student.email);
+        setText("phone", student.phone);
+        setText("dateOfBirth", formatDate(student.dateOfBirth));
+        setText("gender", student.gender);
+        setText("course", student.course);
+        setText("qualification", student.qualification);
+        setText("schoolCollege", student.schoolCollege);
+        setText("session", student.session);
+        setText("address", student.address);
+        setText("city", student.city);
+        setText("state", student.state);
+        setText("pinCode", student.pinCode);
+        setText("guardianName", student.guardianName);
+        setText("guardianPhone", student.guardianPhone);
+
+        renderAvatar(student.fullName);
+
+        message.hidden = true;
+        profileCard.hidden = false;
+      } catch (error) {
+        showMessage(
+          error.message || "Unable to connect to the server.",
+          "error"
+        );
+      }
+    }
+
+    refreshBtn.addEventListener("click", async () => {
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = "Refreshing...";
+
+      try {
+        await loadProfile();
+      } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = "↻ Refresh";
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = "Logging out...";
+
+      try {
+        await fetch(`${API}/logout`, {
+          method: "POST",
+          credentials: "include"
+        });
+      } catch (error) {
+        console.error("Logout request failed:", error);
+      }
+
+      window.location.replace("student-login.html");
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Gallery | Let's Talk English Class</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #eff6ff;
+      color: #172033;
+    }
+
+    header {
+      padding: 28px 20px;
+      text-align: center;
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: white;
+    }
+
+    header h1 {
+      margin: 0 0 10px;
+    }
+
+    header p {
+      margin: 0;
+      color: #dbeafe;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 18px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .gallery {
+      max-width: 1500px;
+      margin: auto;
+      padding: 28px 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .photo {
+      overflow: hidden;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(23, 37, 84, 0.10);
+    }
+
+    .photo img {
+      display: block;
+      width: 110%;
+      height: 500px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .photo img:hover {
+      transform: scale(1.04);
+    }
+
+    .photo p {
+      margin: 0;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      background: rgba(0, 0, 0, 0.9);
+      align-items: center;
+      justify-content: center;
+      padding: 25px;
+    }
+
+    .lightbox img {
+      max-width: 95%;
+      max-height: 85vh;
+      object-fit: contain;
+    }
+
+    .close {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      color: white;
+      font-size: 38px;
+      cursor: pointer;
+      background: none;
+      border: 0;
+    }
+
+    @media (max-width: 900px) {
+      .gallery {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        padding: 16px 12px;
+      }
+
+      .photo img {
+        height: 160px;
+      }
+
+      header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Our Photo Gallery</h1>
+    <p>Memories, classes and activities at Let's Talk English Class</p>
+    <a href="index.html" class="back-link">← Back to Website</a>
+  </header>
+
+  <main class="gallery" id="gallery"></main>
+
+  <div class="lightbox" id="lightbox" onclick="closePhoto()">
+    <button class="close" aria-label="Close" onclick="closePhoto()">×</button>
+    <img id="largePhoto" src="" alt="Full-size gallery photo">
+  </div>
+
+  <script>
+    const photos = [
+      { src: "images/gallery/photo1.jpg" },
+      { src: "images/gallery/photo2.jpeg" },
+      { src: "images/gallery/photo3.jpeg"},
+      { src: "images/gallery/photo4.jpeg" },
+      { src: "images/gallery/photo5.jpeg" },
+      { src: "images/gallery/photo6.jpeg" },
+      { src: "images/gallery/photo7.jpeg"},
+      { src: "images/gallery/photo9.jpeg" },
+      { src: "images/gallery/photo10.jpeg" },
+      { src: "images/gallery/photo11.jpeg" },
+      { src: "images/gallery/photo12.jpeg" },
+      { src: "images/gallery/photo13.jpeg" },
+      { src: "images/gallery/photo14.jpeg" },
+      { src: "images/gallery/photo15.jpeg" },
+      { src: "images/gallery/photo16.jpeg" },
+      { src: "images/gallery/photo17.jpeg" },
+      { src: "images/gallery/photo18.jpeg" },
+      { src: "images/gallery/photo19.jpeg" },
+      { src: "images/gallery/photo20.jpeg" },
+      { src: "images/gallery/photo21.jpeg" },
+      { src: "images/gallery/photo22.jpeg" },
+      { src: "images/gallery/photo221.jpeg" },
+      { src: "images/gallery/photo12.jpeg" },
+    ];
+
+    const gallery = document.getElementById("gallery");
+
+    photos.forEach((photo) => {
+      const card = document.createElement("article");
+      card.className = "photo";
+
+      const img = document.createElement("img");
+      img.src = photo.src;
+      img.alt = photo.title;
+      img.loading = "lazy";
+      img.onclick = () => openPhoto(photo.src);
+      img.onerror = () => card.remove();
+
+      const caption = document.createElement("p");
+      caption.textContent = photo.title;
+
+      card.append(img, caption);
+      gallery.appendChild(card);
+    });
+
+    function openPhoto(src) {
+      document.getElementById("largePhoto").src = src;
+      document.getElementById("lightbox").style.display = "flex";
+    }
+
+    function closePhoto() {
+      document.getElementById("lightbox").style.display = "none";
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closePhoto();
+    });
+  </script>
+</body>
+</html>
