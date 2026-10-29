@@ -6,6 +6,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
+const path = require("path");
 
 const Admin = require("./models/Admin");
 const Student = require("./models/Student");
@@ -212,12 +213,16 @@ function courseFields(body) {
 }
 
 // -------------------- BASIC ROUTES --------------------
+// -------------------- FRONTEND STATIC FILES --------------------
+
+const frontendPath = path.join(__dirname, "../lets-talk-english-site");
+
+app.use(express.static(frontendPath));
+
+// -------------------- BASIC ROUTES --------------------
 
 app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Let's Talk English Class API is running.",
-  });
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 app.get("/api/health", (req, res) => {
