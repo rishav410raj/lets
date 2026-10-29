@@ -776,18 +776,10 @@ app.post(
   verifyAdmin,
   async (req, res, next) => {
     try {
-      const { id } = req.params;
       const amount = Number(req.body.amount);
-      const paymentDate = req.body.paymentDate;
-      const method = String(req.body.method || "Cash").trim();
+      const method = String(req.body.method || "").trim();
       const note = String(req.body.note || "").trim();
-
-      if (!mongoose.isValidObjectId(id)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid student ID.",
-        });
-      }
+      const date = req.body.date ? new Date(req.body.date) : new Date();
 
       if (!Number.isFinite(amount) || amount <= 0) {
         return res.status(400).json({
@@ -796,40 +788,21 @@ app.post(
         });
       }
 
-      const methods = [
-        "Cash",
-        "UPI",
-        "Bank Transfer",
-        "Card",
-        "Other",
-      ];
-
-      if (!methods.includes(method)) {
+      if (!method || method.length > 50 || note.length > 300) {
         return res.status(400).json({
           success: false,
-          message: "Invalid payment method.",
+          message: "Please provide a valid payment method and note.",
         });
       }
 
-      if (note.length > 200) {
+      if (Number.isNaN(date.getTime()) || date > new Date()) {
         return res.status(400).json({
           success: false,
-          message: "Note must be 200 characters or fewer.",
+          message: "Please provide a valid payment date.",
         });
       }
 
-      if (
-        typeof paymentDate !== "string" ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(paymentDate) ||
-        Number.isNaN(new Date(paymentDate).getTime())
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid payment date.",
-        });
-      }
-
-      const student = await Student.findById(id);
+      const student = await Student.findById(req.params.id);
 
       if (!student) {
         return res.status(404).json({
@@ -838,9 +811,9 @@ app.post(
         });
       }
 
-      const fees = student.feeStructure;
-      const totalFee = Number(fees?.totalFee || 0);
-      const paidAmount = Number(fees?.paidAmount || 0);
+      const feeStructure = student.feeStructure || {};
+      const totalFee = Number(feeStructure.totalFee || 0);
+      const paidAmount = Number(feeStructure.paidAmount || 0);
       const pendingFee = Math.max(0, totalFee - paidAmount);
 
       if (amount > pendingFee) {
@@ -850,42 +823,53 @@ app.post(
         });
       }
 
-      if (!fees) {
-        return res.status(400).json({
-          success: false,
-          message: "Please set the student's total fee first.",
-        });
-      }
+      feeStructure.payments = feeStructure.payments || [];
+      feeStructure.payments.push({ amount, method, note, date });
+      feeStructure.paidAmount = paidAmount + amount;
 
-      fees.payments.push({
-        amount,
-        paymentDate: new Date(paymentDate),
-        method,
-        note,
-      });
-
-      fees.paidAmount = paidAmount + amount;
-
+      student.feeStructure = feeStructure;
       await student.save();
 
       res.status(201).json({
         success: true,
         message: "Payment recorded successfully.",
-        fees: {
-          totalFee: fees.totalFee,
-          paidAmount: fees.paidAmount,
-          pendingFee: Math.max(
-            0,
-            fees.totalFee - fees.paidAmount
-          ),
-          payments: fees.payments,
-        },
+        fees: student.feeStructure,
       });
     } catch (error) {
       next(error);
     }
   }
 );
+
+// -------------------- ADMISSIONS --------------------
+
+app.get("/api/admin/admissions", verifyAdmin, async (req, res, next) => {
+  try {
+    const admissions = await Admission.find().sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      admissions,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/admissions", async (req, res, next) => {
+  try {
+    const admission = await Admission.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      message: "Admission submitted successfully.",
+      admission,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // -------------------- COURSES --------------------
 
 app.get("/api/courses", async (req, res, next) => {
