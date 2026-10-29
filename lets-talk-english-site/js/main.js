@@ -64,7 +64,7 @@ form.addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Submitting...';
 
   try {
-    const response = await fetch('http://localhost:5000/api/admissions', {
+    const response = await fetch('https://letstalkbgp.com/api/admissions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
