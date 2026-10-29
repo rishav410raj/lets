@@ -1257,14 +1257,16 @@
   </div>
 
   <script>
-    const API = "https://letstalkbgp.com";
+    const API = window.location.origin;
     const $ = id => document.getElementById(id);
-
+    
     let studentsCache = [];
     let coursesCache = [];
     let adminInfo = null;
     let setupMode = false;
-
+    let selectedFeeStudentId = "";
+    let currentFeeData = null;
+    
     function escapeHTML(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({
         "&": "&amp;",
@@ -1274,111 +1276,78 @@
         "'": "&#39;"
       })[char]);
     }
-
+    
     function showMessage(id, message, type = "danger") {
       const element = $(id);
+      if (!element) return;
       element.className = `alert alert-${type}`;
       element.textContent = message;
       element.classList.remove("hidden");
     }
-
+    
     function hideMessage(id) {
-      $(id).classList.add("hidden");
+      $(id)?.classList.add("hidden");
     }
-
+    
     async function api(path, options = {}) {
-  let response;
-
-  try {
-    response = await fetch(API + path, {
-      ...options,
-      credentials: "include",
-      headers: {
-        ...(options.body ? { "Content-Type": "application/json" } : {}),
-        ...(options.headers || {})
+      let response;
+    
+      try {
+        response = await fetch(API + path, {
+          ...options,
+          credentials: "include",
+          headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...(options.headers || {})
+          }
+        });
+      } catch (error) {
+        console.error("Network error:", error);
+        throw new Error("Backend se connection nahi ho raha. Server aur network check karo.");
       }
-    });
-  } catch (error) {
-    console.error("Network error:", error);
-    throw new Error(
-      "Backend se connection nahi ho raha. Check karo server running hai ya nahi."
-    );
-  }
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok || data.success === false) {
-    if (
-      response.status === 401 &&
-      !path.includes("/login") &&
-      !path.includes("/setup-status")
-    ) {
-      showLogin();
+    
+      const data = await response.json().catch(() => ({}));
+    
+      if (!response.ok || data.success === false) {
+        if (
+          response.status === 401 &&
+          !path.includes("/login") &&
+          !path.includes("/signup") &&
+          !path.includes("/setup-status")
+        ) {
+          showLogin();
+        }
+    
+        console.error("API error:", { path, status: response.status, response: data });
+        throw new Error(data.message || `Request failed with status ${response.status}`);
+      }
+    
+      return data;
     }
-
-    console.error("API error:", {
-      path,
-      status: response.status,
-      response: data
-    });
-
-    throw new Error(
-      data.message || `Request failed with status ${response.status}`
-    );
-  }
-
-  return data;
-}
+    
     function showLogin() {
       $("loginScreen").classList.remove("hidden");
       $("adminApp").classList.add("hidden");
     }
-
+    
     function showAdmin() {
       $("loginScreen").classList.add("hidden");
       $("adminApp").classList.remove("hidden");
-
       $("adminName").textContent = adminInfo?.name || "Admin";
       $("adminEmail").textContent = adminInfo?.email || "";
-
       loadDashboard();
     }
-  
-$("deleteAdminAccountBtn").addEventListener("click", async () => {
-  const confirmed = confirm(
-    "Are you sure? Your admin account will be permanently deleted."
-  );
-
-  if (!confirmed) return;
-
-  try {
-    const data = await api("/api/admin/delete-account", {
-      method: "DELETE"
-    });
-
-    alert(data.message || "Admin account deleted successfully.");
-
-    adminInfo = null;
-    setupMode = true;
-    $("loginForm").reset();
-
-    await checkSession();
-  } catch (error) {
-    alert(error.message || "Unable to delete account.");
-  }
-});
-
+    
     async function checkSession() {
       try {
         const data = await api("/api/admin/me");
         adminInfo = data.admin;
         showAdmin();
       } catch (error) {
-        if (error.message) console.log("Admin session:", error.message);
-
         try {
           const status = await api("/api/admin/setup-status");
           setupMode = Boolean(status.setupRequired);
+    
           $("signupNameWrap").classList.toggle("hidden", !setupMode);
           $("loginHeading").textContent = setupMode ? "Create Admin Account" : "Admin Login";
           $("loginDescription").textContent = setupMode
@@ -1388,68 +1357,94 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
         } catch (setupError) {
           showMessage("loginMessage", setupError.message);
         }
-
+    
         showLogin();
       }
     }
-
+    
     $("loginForm").addEventListener("submit", async event => {
       event.preventDefault();
       hideMessage("loginMessage");
-
+    
       const email = $("loginEmail").value.trim();
       const password = $("loginPassword").value;
       const path = setupMode ? "/api/admin/signup" : "/api/admin/login";
-
       const payload = { email, password };
+    
       if (setupMode) payload.name = $("signupName").value.trim();
-
+    
       try {
         const data = await api(path, {
           method: "POST",
           body: JSON.stringify(payload)
         });
+    
         adminInfo = data.admin;
         showAdmin();
       } catch (error) {
         showMessage("loginMessage", error.message);
       }
     });
-
+    
     $("logoutButton").addEventListener("click", async () => {
       try {
         await api("/api/admin/logout", { method: "POST" });
       } catch (error) {
         console.error(error);
       }
+    
       adminInfo = null;
       showLogin();
     });
-
+    
+    $("deleteAdminAccountBtn").addEventListener("click", async () => {
+      const password = prompt("Enter your current admin password to delete your account.");
+      if (!password) return;
+    
+      if (!confirm("Are you sure? Your admin account will be permanently deleted.")) {
+        return;
+      }
+    
+      try {
+        const data = await api("/api/admin/delete-account", {
+          method: "DELETE",
+          body: JSON.stringify({ password })
+        });
+    
+        alert(data.message || "Admin account deleted successfully.");
+        adminInfo = null;
+        setupMode = true;
+        $("loginForm").reset();
+        await checkSession();
+      } catch (error) {
+        alert(error.message || "Unable to delete account.");
+      }
+    });
+    
     const pageTitles = {
-  overview: "Overview",
-  students: "Student Accounts",
-  registered: "Registered Students",
-  fees: "Fee Management",
-  admissions: "Admissions",
-  courses: "Courses",
-  password: "Change Password"
-};
-
+      overview: "Overview",
+      students: "Student Accounts",
+      registered: "Registered Students",
+      fees: "Fee Management",
+      admissions: "Admissions",
+      courses: "Courses",
+      password: "Change Password"
+    };
+    
     function navigate(page) {
       if (!pageTitles[page]) return;
-
+    
       document.querySelectorAll(".page-section").forEach(section => {
         section.classList.remove("active");
       });
-
+    
       document.querySelectorAll("[data-page]").forEach(button => {
         button.classList.toggle("active", button.dataset.page === page);
       });
-
+    
       $("page-" + page).classList.add("active");
       $("pageTitle").textContent = pageTitles[page];
-
+    
       if (page === "overview") loadDashboard();
       if (page === "students") loadStudents();
       if (page === "registered") loadRegisteredStudents();
@@ -1457,15 +1452,15 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
       if (page === "admissions") loadAdmissions();
       if (page === "courses") loadCourses();
     }
-
+    
     document.querySelectorAll("[data-page]").forEach(button => {
       button.addEventListener("click", () => navigate(button.dataset.page));
     });
-
+    
     document.querySelectorAll("[data-go]").forEach(button => {
       button.addEventListener("click", () => navigate(button.dataset.go));
     });
-
+    
     async function loadDashboard() {
       try {
         const [studentData, admissionData, courseData] = await Promise.all([
@@ -1473,20 +1468,24 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
           api("/api/admin/admissions"),
           api("/api/courses")
         ]);
-
+    
         const students = studentData.students || [];
+    
         $("totalStudents").textContent = students.length;
         $("totalRegistered").textContent = students.filter(
           student => student.registrationCompleted === true
         ).length;
-        $("totalAdmissions").textContent = admissionData.total ?? (admissionData.admissions || []).length;
+        $("totalAdmissions").textContent =
+          admissionData.total ?? (admissionData.admissions || []).length;
         $("totalCourses").textContent = (courseData.courses || []).length;
       } catch (error) {
         console.error("Dashboard:", error.message);
       }
     }
-
-    function resetStudentForm() {
+    
+    function resetStudentForm(options = {}) {
+      const { keepCredentials = false } = options;
+    
       $("studentForm").reset();
       $("studentMongoId").value = "";
       $("studentFormHeading").textContent = "Create Student Account";
@@ -1496,81 +1495,124 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
       $("studentPasswordWrap").classList.remove("hidden");
       $("studentLoginId").required = true;
       $("studentTemporaryPassword").required = true;
+    
       hideMessage("studentMessage");
-      $("createdCredentials").classList.add("hidden");
+    
+      if (!keepCredentials) {
+        $("createdCredentials").classList.add("hidden");
+        $("createdCredentials").textContent = "";
+      }
     }
-
+    
     $("cancelStudentEdit").addEventListener("click", resetStudentForm);
-
+    
     $("studentForm").addEventListener("submit", async event => {
       event.preventDefault();
+    
       hideMessage("studentMessage");
       $("createdCredentials").classList.add("hidden");
-
+    
       const id = $("studentMongoId").value;
-
-      if (id) {
-        try {
-          await api(`/api/admin/students/${encodeURIComponent(id)}`, {
-            method: "PUT",
-            body: JSON.stringify({
-              fullName: $("studentFullName").value.trim(),
-              email: $("studentEmail").value.trim()
-            })
-          });
-
-          showMessage("studentMessage", "Student account updated successfully.", "success");
-          resetStudentForm();
-          await loadStudents();
-          await loadDashboard();
-        } catch (error) {
-          showMessage("studentMessage", error.message);
-        }
+      const fullName = $("studentFullName").value.trim();
+      const email = $("studentEmail").value.trim();
+    
+      if (!fullName || !email) {
+        showMessage("studentMessage", "Please enter student name and email.");
         return;
       }
-
+    
+      const button = $("saveStudentButton");
+      button.disabled = true;
+    
       try {
+        if (id) {
+          await api(`/api/admin/students/${encodeURIComponent(id)}`, {
+            method: "PUT",
+            body: JSON.stringify({ fullName, email })
+          });
+    
+          resetStudentForm();
+          showMessage("studentMessage", "Student account updated successfully.", "success");
+    
+          await loadStudents();
+          await loadDashboard();
+          await loadRegisteredStudents();
+          return;
+        }
+    
+        const studentId = $("studentLoginId").value.trim();
+        const temporaryPassword = $("studentTemporaryPassword").value;
+    
+        if (!studentId || temporaryPassword.length < 8) {
+          showMessage(
+            "studentMessage",
+            "Enter a login ID and a temporary password of at least 8 characters."
+          );
+          return;
+        }
+    
         const data = await api("/api/admin/students", {
           method: "POST",
           body: JSON.stringify({
-            fullName: $("studentFullName").value.trim(),
-            email: $("studentEmail").value.trim(),
-            studentId: $("studentLoginId").value.trim(),
-            temporaryPassword: $("studentTemporaryPassword").value
+            fullName,
+            email,
+            studentId,
+            temporaryPassword
           })
         });
-
+    
         const credentials = data.credentials;
-        $("createdCredentials").textContent =
-          `Account created. Login ID: ${credentials.studentId}. Temporary password: ${credentials.temporaryPassword}. Share these credentials securely with the student.`;
-        $("createdCredentials").classList.remove("hidden");
-
-        resetStudentForm();
+    
+        $("studentForm").reset();
+        $("studentMongoId").value = "";
+        $("studentFormHeading").textContent = "Create Student Account";
+        $("saveStudentButton").textContent = "Create Account";
+        $("cancelStudentEdit").classList.add("hidden");
+        $("studentLoginIdWrap").classList.remove("hidden");
+        $("studentPasswordWrap").classList.remove("hidden");
+        $("studentLoginId").required = true;
+        $("studentTemporaryPassword").required = true;
+    
+        if (credentials?.studentId && credentials?.temporaryPassword) {
+          $("createdCredentials").textContent =
+            `Account created successfully. Login ID: ${credentials.studentId}. Temporary password: ${credentials.temporaryPassword}. Share these credentials securely with the student.`;
+          $("createdCredentials").classList.remove("hidden");
+        } else {
+          $("createdCredentials").classList.add("hidden");
+          showMessage(
+            "studentMessage",
+            "Student account was created, but the server did not return credentials. Check the backend response.",
+            "warning"
+          );
+        }
+    
         await loadStudents();
         await loadDashboard();
       } catch (error) {
         showMessage("studentMessage", error.message);
+      } finally {
+        button.disabled = false;
       }
     });
-
+    
     async function loadStudents() {
       const body = $("studentsBody");
       body.innerHTML = '<tr><td colspan="6" class="empty">Loading...</td></tr>';
-
+    
       try {
         const data = await api("/api/admin/students");
         studentsCache = data.students || [];
         body.innerHTML = "";
-
+    
         if (!studentsCache.length) {
           body.innerHTML = '<tr><td colspan="6" class="empty">No student accounts found.</td></tr>';
           return;
         }
-
+    
         studentsCache.forEach(student => {
           const row = document.createElement("tr");
           const active = student.isActive !== false;
-
+    
           row.innerHTML = `
             <td>${escapeHTML(student.fullName || "—")}</td>
             <td>${escapeHTML(student.email || "—")}</td>
@@ -1584,24 +1626,24 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
               <button class="btn btn-sm btn-outline-danger" data-delete-student="${escapeHTML(student._id)}">Delete</button>
             </td>
           `;
-
+    
           body.appendChild(row);
         });
       } catch (error) {
         body.innerHTML = `<tr><td colspan="6" class="text-danger">${escapeHTML(error.message)}</td></tr>`;
       }
     }
-
+    
     $("studentsBody").addEventListener("click", async event => {
       const editButton = event.target.closest("[data-edit-student]");
       const deleteButton = event.target.closest("[data-delete-student]");
-
+    
       if (editButton) {
         const student = studentsCache.find(
           item => item._id === editButton.dataset.editStudent
         );
         if (!student) return;
-
+    
         $("studentMongoId").value = student._id;
         $("studentFullName").value = student.fullName || "";
         $("studentEmail").value = student.email || "";
@@ -1614,115 +1656,131 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
         $("studentTemporaryPassword").required = false;
         $("createdCredentials").classList.add("hidden");
         $("studentForm").scrollIntoView({ behavior: "smooth" });
+        return;
       }
-
+    
       if (deleteButton) {
         const id = deleteButton.dataset.deleteStudent;
         const student = studentsCache.find(item => item._id === id);
-
-        if (!confirm(`Delete student account for ${student?.fullName || "this student"}? This cannot be undone.`)) {
-          return;
-        }
-
+    
+        if (!id || !confirm(
+          `Delete student account for ${student?.fullName || "this student"}? This cannot be undone.`
+        )) return;
+    
         try {
           await api(`/api/admin/students/${encodeURIComponent(id)}`, {
             method: "DELETE"
           });
+    
           resetStudentForm();
           await loadStudents();
           await loadDashboard();
           await loadRegisteredStudents();
+          await loadFeeStudents();
         } catch (error) {
           showMessage("studentMessage", error.message);
         }
       }
     });
-
+    
     function formatDate(value, includeTime = false) {
       if (!value) return "—";
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return "—";
-
+    
       return includeTime
         ? date.toLocaleString("en-IN")
         : date.toLocaleDateString("en-IN");
     }
-
+    
     async function loadRegisteredStudents() {
       const body = $("registeredStudentsBody");
       body.innerHTML = '<tr><td colspan="6" class="empty">Loading registered students...</td></tr>';
       $("registeredProfilePanel").classList.add("hidden");
-
+    
       try {
         const data = await api("/api/admin/students");
         studentsCache = data.students || [];
-
+    
         const registeredStudents = Array.isArray(data.registeredStudents)
           ? data.registeredStudents
           : studentsCache.filter(student => student.registrationCompleted === true);
-
+    
         body.innerHTML = "";
-
+    
         if (!registeredStudents.length) {
           body.innerHTML = '<tr><td colspan="6" class="empty">No completed registrations found.</td></tr>';
           return;
         }
-
+    
         registeredStudents.forEach(student => {
           const row = document.createElement("tr");
           const nameCell = document.createElement("td");
           const nameButton = document.createElement("button");
-
+    
           nameButton.type = "button";
           nameButton.className = "btn btn-link p-0 text-decoration-none fw-semibold";
           nameButton.textContent = student.fullName || "Unnamed Student";
           nameButton.dataset.viewRegistered = student._id;
           nameCell.appendChild(nameButton);
-
-          const values = [
+    
+          row.appendChild(nameCell);
+    
+          [
             student.studentId || "—",
             student.email || "—",
             student.phone || "—",
             student.course || "—",
             formatDate(student.updatedAt || student.createdAt)
-          ];
-
-          row.appendChild(nameCell);
-
-          values.forEach(value => {
+          ].forEach(value => {
             const cell = document.createElement("td");
             cell.textContent = value;
             row.appendChild(cell);
           });
-
+    
           body.appendChild(row);
         });
       } catch (error) {
         body.innerHTML = `<tr><td colspan="6" class="text-danger">${escapeHTML(error.message)}</td></tr>`;
       }
     }
-
+    
     $("registeredStudentsBody").addEventListener("click", async event => {
       const button = event.target.closest("[data-view-registered]");
       if (!button) return;
-
+    
       const studentId = button.dataset.viewRegistered;
       const panel = $("registeredProfilePanel");
       const content = $("registeredProfileContent");
-
+    
       panel.classList.remove("hidden");
       content.innerHTML = '<div class="col-12 muted">Loading student profile...</div>';
       $("registeredProfileName").textContent = "Student Profile";
-
+    
       try {
         const data = await api(`/api/admin/students/${encodeURIComponent(studentId)}`);
         const student = data.student;
-
+    
         if (!student) throw new Error("Student profile not found.");
-
+    
         $("registeredProfileName").textContent = student.fullName || "Student Profile";
         content.innerHTML = "";
-
+    
+        if (student.profileImage && /^https?:\/\//i.test(student.profileImage)) {
+          const imageColumn = document.createElement("div");
+          imageColumn.className = "col-12";
+    
+          const image = document.createElement("img");
+          image.src = student.profileImage;
+          image.alt = "Student profile";
+          image.className = "profile-avatar";
+          image.referrerPolicy = "no-referrer";
+          image.onerror = () => image.remove();
+    
+          imageColumn.appendChild(image);
+          content.appendChild(imageColumn);
+        }
+    
         const profileFields = [
           ["Full Name", student.fullName],
           ["Student Login ID", student.studentId],
@@ -1745,45 +1803,30 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
           ["Account Created", formatDate(student.createdAt, true)],
           ["Last Updated", formatDate(student.updatedAt, true)]
         ];
-
-        if (student.profileImage && /^https?:\/\//i.test(student.profileImage)) {
-          const imageColumn = document.createElement("div");
-          imageColumn.className = "col-12";
-
-          const image = document.createElement("img");
-          image.src = student.profileImage;
-          image.alt = "Student profile";
-          image.className = "profile-avatar";
-          image.referrerPolicy = "no-referrer";
-          image.onerror = () => image.remove();
-
-          imageColumn.appendChild(image);
-          content.appendChild(imageColumn);
-        }
-
+    
         profileFields.forEach(([label, value]) => {
           const column = document.createElement("div");
           column.className = "col-md-6 col-xl-4";
-
+    
           const item = document.createElement("div");
           item.className = "profile-item";
-
+    
           const labelElement = document.createElement("div");
           labelElement.className = "profile-label";
           labelElement.textContent = label;
-
+    
           const valueElement = document.createElement("div");
           valueElement.className = "profile-value";
           valueElement.textContent =
             value !== undefined && value !== null && value !== ""
               ? String(value)
               : "Not provided";
-
+    
           item.append(labelElement, valueElement);
           column.appendChild(item);
           content.appendChild(column);
         });
-
+    
         panel.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (error) {
         content.innerHTML = "";
@@ -1793,53 +1836,52 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
         content.appendChild(errorBox);
       }
     });
-
+    
     $("refreshStudents").addEventListener("click", loadStudents);
     $("refreshRegisteredButton").addEventListener("click", loadRegisteredStudents);
-
+    
     $("closeRegisteredProfile").addEventListener("click", () => {
       $("registeredProfilePanel").classList.add("hidden");
     });
-
+    
     async function loadAdmissions() {
       const body = $("admissionsBody");
       body.innerHTML = '<tr><td colspan="5" class="empty">Loading...</td></tr>';
-
+    
       try {
         const data = await api("/api/admin/admissions");
         const admissions = data.admissions || [];
         body.innerHTML = "";
-
+    
         if (!admissions.length) {
           body.innerHTML = '<tr><td colspan="5" class="empty">No admission enquiries found.</td></tr>';
           return;
         }
-
+    
         admissions.forEach(admission => {
           const row = document.createElement("tr");
-          const values = [
+    
+          [
             admission.name,
             admission.phone,
             admission.course,
             admission.message,
             formatDate(admission.createdAt, true)
-          ];
-
-          values.forEach(value => {
+          ].forEach(value => {
             const cell = document.createElement("td");
             cell.textContent = value || "—";
             row.appendChild(cell);
           });
-
+    
           body.appendChild(row);
         });
       } catch (error) {
         body.innerHTML = `<tr><td colspan="5" class="text-danger">${escapeHTML(error.message)}</td></tr>`;
       }
     }
-
+    
     $("refreshAdmissions").addEventListener("click", loadAdmissions);
-
+    
     function resetCourseForm() {
       $("courseForm").reset();
       $("courseMongoId").value = "";
@@ -1849,21 +1891,21 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
       $("cancelCourseEdit").classList.add("hidden");
       hideMessage("courseMessage");
     }
-
+    
     $("cancelCourseEdit").addEventListener("click", resetCourseForm);
-
+    
     $("courseForm").addEventListener("submit", async event => {
       event.preventDefault();
       hideMessage("courseMessage");
-
+    
       const id = $("courseMongoId").value;
       const fee = Number($("courseFee").value);
-
+    
       if (!Number.isFinite(fee) || fee < 0) {
         showMessage("courseMessage", "Enter a valid course fee.");
         return;
       }
-
+    
       const payload = {
         name: $("courseName").value.trim(),
         category: $("courseCategory").value.trim(),
@@ -1871,42 +1913,44 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
         fee,
         description: $("courseDescription").value.trim()
       };
-
+    
       try {
-        await api(id
-          ? `/api/admin/courses/${encodeURIComponent(id)}`
-          : "/api/admin/courses", {
-          method: id ? "PUT" : "POST",
-          body: JSON.stringify(payload)
-        });
-
-        showMessage("courseMessage", id ? "Course updated." : "Course added.", "success");
+        await api(
+          id ? `/api/admin/courses/${encodeURIComponent(id)}` : "/api/admin/courses",
+          {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(payload)
+          }
+        );
+    
         resetCourseForm();
+        showMessage("courseMessage", id ? "Course updated." : "Course added.", "success");
         await loadCourses();
         await loadDashboard();
       } catch (error) {
         showMessage("courseMessage", error.message);
       }
     });
-
+    
     async function loadCourses() {
       const body = $("coursesBody");
       body.innerHTML = '<tr><td colspan="5" class="empty">Loading...</td></tr>';
-
+    
       try {
         const data = await api("/api/courses");
         coursesCache = data.courses || [];
         body.innerHTML = "";
-
+    
         if (!coursesCache.length) {
           body.innerHTML = '<tr><td colspan="5" class="empty">No courses found.</td></tr>';
           return;
         }
-
+    
         coursesCache.forEach(course => {
           const row = document.createElement("tr");
+    
           row.innerHTML = `
-            <td>${escapeHTML(course.name || "—")}</td>
+            <td>${escapeHTML(course.name || course.title || "—")}</td>
             <td>${escapeHTML(course.category || "—")}</td>
             <td>${escapeHTML(course.duration || "—")}</td>
             <td>${escapeHTML(course.fee ?? 0)}</td>
@@ -1915,23 +1959,24 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
               <button class="btn btn-sm btn-outline-danger" data-delete-course="${escapeHTML(course._id)}">Delete</button>
             </td>
           `;
+    
           body.appendChild(row);
         });
       } catch (error) {
         body.innerHTML = `<tr><td colspan="5" class="text-danger">${escapeHTML(error.message)}</td></tr>`;
       }
     }
-
+    
     $("coursesBody").addEventListener("click", async event => {
       const editButton = event.target.closest("[data-edit-course]");
       const deleteButton = event.target.closest("[data-delete-course]");
-
+    
       if (editButton) {
         const course = coursesCache.find(item => item._id === editButton.dataset.editCourse);
         if (!course) return;
-
+    
         $("courseMongoId").value = course._id;
-        $("courseName").value = course.name || "";
+        $("courseName").value = course.name || course.title || "";
         $("courseCategory").value = course.category || "";
         $("courseDuration").value = course.duration || "";
         $("courseFee").value = course.fee ?? 0;
@@ -1940,18 +1985,22 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
         $("saveCourseButton").textContent = "Save Changes";
         $("cancelCourseEdit").classList.remove("hidden");
         $("courseForm").scrollIntoView({ behavior: "smooth" });
+        return;
       }
-
+    
       if (deleteButton) {
         const id = deleteButton.dataset.deleteCourse;
         const course = coursesCache.find(item => item._id === id);
-
-        if (!confirm(`Delete course "${course?.name || ""}"?`)) return;
-
+    
+        if (!id || !confirm(`Delete course "${course?.name || course?.title || ""}"?`)) {
+          return;
+        }
+    
         try {
           await api(`/api/admin/courses/${encodeURIComponent(id)}`, {
             method: "DELETE"
           });
+    
           await loadCourses();
           await loadDashboard();
         } catch (error) {
@@ -1959,306 +2008,289 @@ $("deleteAdminAccountBtn").addEventListener("click", async () => {
         }
       }
     });
-
+    
     $("refreshCourses").addEventListener("click", loadCourses);
-
-    let selectedFeeStudentId = "";
-let currentFeeData = null;
-
-function formatINR(value) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2
-  }).format(Number(value) || 0);
-}
-
-function localDateInputValue() {
-  const now = new Date();
-  const offset = now.getTimezoneOffset() * 60000;
-  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
-}
-
-async function loadFeeStudents() {
-  const select = $("feeStudentSelect");
-  const previousId = selectedFeeStudentId || select.value;
-
-  select.innerHTML = '<option value="">Loading students...</option>';
-  hideMessage("feeMessage");
-
-  try {
-    const data = await api("/api/admin/students");
-    const students = data.students || [];
-
-    select.innerHTML = '<option value="">Select a student</option>';
-
-    students.forEach(student => {
-      const option = document.createElement("option");
-      option.value = student._id;
-      option.textContent =
-        `${student.fullName || "Unnamed"} (${student.studentId || "No Login ID"})`;
-      select.appendChild(option);
-    });
-
-    if (!students.length) {
-      select.innerHTML = '<option value="">No students found</option>';
-      $("feeDetailsPanel").classList.add("hidden");
-      selectedFeeStudentId = "";
+    
+    function formatINR(value) {
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 2
+      }).format(Number(value) || 0);
+    }
+    
+    function localDateInputValue() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+    }
+    
+    async function loadFeeStudents() {
+      const select = $("feeStudentSelect");
+      const previousId = selectedFeeStudentId || select.value;
+    
+      select.innerHTML = '<option value="">Loading students...</option>';
+      hideMessage("feeMessage");
+    
+      try {
+        const data = await api("/api/admin/students");
+        const students = data.students || [];
+    
+        select.innerHTML = '<option value="">Select a student</option>';
+    
+        students.forEach(student => {
+          const option = document.createElement("option");
+          option.value = student._id;
+          option.textContent =
+            `${student.fullName || "Unnamed"} (${student.studentId || "No Login ID"})`;
+          select.appendChild(option);
+        });
+    
+        if (!students.length) {
+          select.innerHTML = '<option value="">No students found</option>';
+          $("feeDetailsPanel").classList.add("hidden");
+          selectedFeeStudentId = "";
+          currentFeeData = null;
+          return;
+        }
+    
+        select.value = students.some(student => student._id === previousId)
+          ? previousId
+          : "";
+    
+        if (select.value) {
+          selectedFeeStudentId = select.value;
+          await loadSelectedStudentFees();
+        } else {
+          selectedFeeStudentId = "";
+          currentFeeData = null;
+          $("feeDetailsPanel").classList.add("hidden");
+          $("feePaymentsBody").innerHTML =
+            '<tr><td colspan="4" class="empty">Select a student to view payments.</td></tr>';
+        }
+      } catch (error) {
+        select.innerHTML = '<option value="">Unable to load students</option>';
+        showMessage("feeMessage", error.message);
+      }
+    }
+    
+    async function loadSelectedStudentFees() {
+      const id = $("feeStudentSelect").value;
+    
+      if (!id) {
+        selectedFeeStudentId = "";
+        currentFeeData = null;
+        $("feeDetailsPanel").classList.add("hidden");
+        return;
+      }
+    
+      selectedFeeStudentId = id;
+      $("feeDetailsPanel").classList.remove("hidden");
+      hideMessage("feeMessage");
+    
+      try {
+        const data = await api(`/api/admin/students/${encodeURIComponent(id)}/fees`);
+    
+        if (selectedFeeStudentId !== id) return;
+    
+        currentFeeData = data.fees || {
+          totalFee: 0,
+          paidAmount: 0,
+          pendingFee: 0,
+          payments: []
+        };
+    
+        renderFeeDetails();
+      } catch (error) {
+        showMessage("feeMessage", error.message);
+      }
+    }
+    
+    function renderFeeDetails() {
+      if (!currentFeeData) return;
+    
+      const totalFee = Math.max(0, Number(currentFeeData.totalFee) || 0);
+      const paidAmount = Math.max(0, Number(currentFeeData.paidAmount) || 0);
+      const pendingFee = Math.max(0, totalFee - paidAmount);
+    
+      $("feeTotalDisplay").textContent = formatINR(totalFee);
+      $("feePaidDisplay").textContent = formatINR(paidAmount);
+      $("feePendingDisplay").textContent = formatINR(pendingFee);
+      $("totalFeeInput").value = totalFee;
+      $("paymentAmount").max = pendingFee;
+      $("recordPaymentButton").disabled = pendingFee <= 0;
+    
+      const body = $("feePaymentsBody");
+      const payments = [...(currentFeeData.payments || [])].reverse();
+    
+      body.innerHTML = "";
+    
+      if (!payments.length) {
+        body.innerHTML = '<tr><td colspan="4" class="empty">No payments recorded yet.</td></tr>';
+        return;
+      }
+    
+      payments.forEach(payment => {
+        const row = document.createElement("tr");
+    
+        [
+          formatDate(payment.paymentDate || payment.date),
+          formatINR(payment.amount),
+          payment.method || "Cash",
+          payment.note || "—"
+        ].forEach(value => {
+          const cell = document.createElement("td");
+          cell.textContent = value;
+          row.appendChild(cell);
+        });
+    
+        body.appendChild(row);
+      });
+    }
+    
+    $("feeStudentSelect").addEventListener("change", async () => {
+      selectedFeeStudentId = $("feeStudentSelect").value;
       currentFeeData = null;
-      return;
-    }
-
-    if (students.some(student => student._id === previousId)) {
-      select.value = previousId;
-    } else {
-      select.value = "";
-    }
-
-    if (select.value) {
-      selectedFeeStudentId = select.value;
+    
+      if (!selectedFeeStudentId) {
+        $("feeDetailsPanel").classList.add("hidden");
+        return;
+      }
+    
       await loadSelectedStudentFees();
-    } else {
-      selectedFeeStudentId = "";
-      currentFeeData = null;
-      $("feeDetailsPanel").classList.add("hidden");
-      $("feePaymentsBody").innerHTML =
-        '<tr><td colspan="4" class="empty">Select a student to view payments.</td></tr>';
-    }
-  } catch (error) {
-    select.innerHTML = '<option value="">Unable to load students</option>';
-    showMessage("feeMessage", error.message);
-  }
-}
-
-async function loadSelectedStudentFees() {
-  const id = $("feeStudentSelect").value;
-
-  if (!id) {
-    selectedFeeStudentId = "";
-    currentFeeData = null;
-    $("feeDetailsPanel").classList.add("hidden");
-    return;
-  }
-
-  selectedFeeStudentId = id;
-  $("feeDetailsPanel").classList.remove("hidden");
-  hideMessage("feeMessage");
-
-  try {
-    const data = await api(
-      `/api/admin/students/${encodeURIComponent(id)}/fees`
-    );
-
-    if (selectedFeeStudentId !== id) return;
-
-    currentFeeData = data.fees || {
-      totalFee: 0,
-      paidAmount: 0,
-      pendingFee: 0,
-      payments: []
-    };
-
-    renderFeeDetails();
-  } catch (error) {
-    showMessage("feeMessage", error.message);
-  }
-}
-
-function renderFeeDetails() {
-  if (!currentFeeData) return;
-
-  const totalFee = Number(currentFeeData.totalFee) || 0;
-  const paidAmount = Number(currentFeeData.paidAmount) || 0;
-  const pendingFee = Math.max(0, totalFee - paidAmount);
-
-  $("feeTotalDisplay").textContent = formatINR(totalFee);
-  $("feePaidDisplay").textContent = formatINR(paidAmount);
-  $("feePendingDisplay").textContent = formatINR(pendingFee);
-  $("totalFeeInput").value = totalFee;
-
-  $("paymentAmount").max = pendingFee;
-  $("recordPaymentButton").disabled = pendingFee <= 0;
-
-  const body = $("feePaymentsBody");
-  const payments = [...(currentFeeData.payments || [])].reverse();
-
-  body.innerHTML = "";
-
-  if (!payments.length) {
-    body.innerHTML =
-      '<tr><td colspan="4" class="empty">No payments recorded yet.</td></tr>';
-    return;
-  }
-
-  payments.forEach(payment => {
-    const row = document.createElement("tr");
-
-    const values = [
-      formatDate(payment.paymentDate),
-      formatINR(payment.amount),
-      payment.method || "Cash",
-      payment.note || "—"
-    ];
-
-    values.forEach(value => {
-      const cell = document.createElement("td");
-      cell.textContent = value;
-      row.appendChild(cell);
     });
-
-    body.appendChild(row);
-  });
-}
-
-$("feeStudentSelect").addEventListener("change", async () => {
-  selectedFeeStudentId = $("feeStudentSelect").value;
-  currentFeeData = null;
-
-  if (!selectedFeeStudentId) {
-    $("feeDetailsPanel").classList.add("hidden");
-    return;
-  }
-
-  await loadSelectedStudentFees();
-});
-
-$("refreshFeeStudents").addEventListener("click", loadFeeStudents);
-$("refreshFeeDetails").addEventListener("click", loadSelectedStudentFees);
-
-$("totalFeeForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  hideMessage("feeMessage");
-
-  const id = selectedFeeStudentId;
-  const totalFee = Number($("totalFeeInput").value);
-
-  if (!id) {
-    showMessage("feeMessage", "Please select a student.");
-    return;
-  }
-
-  if (!Number.isFinite(totalFee) || totalFee < 0) {
-    showMessage("feeMessage", "Enter a valid total fee.");
-    return;
-  }
-
-  try {
-    const data = await api(
-      `/api/admin/students/${encodeURIComponent(id)}/fees`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ totalFee })
+    
+    $("refreshFeeStudents").addEventListener("click", loadFeeStudents);
+    $("refreshFeeDetails").addEventListener("click", loadSelectedStudentFees);
+    
+    $("totalFeeForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      hideMessage("feeMessage");
+    
+      const id = selectedFeeStudentId;
+      const totalFee = Number($("totalFeeInput").value);
+    
+      if (!id) {
+        showMessage("feeMessage", "Please select a student.");
+        return;
       }
-    );
-
-    currentFeeData = data.fees;
-    renderFeeDetails();
-    showMessage("feeMessage", data.message || "Total fee saved.", "success");
-  } catch (error) {
-    showMessage("feeMessage", error.message);
-  }
-});
-
-$("paymentDate").value = localDateInputValue();
-
-$("feePaymentForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  hideMessage("feeMessage");
-
-  const id = selectedFeeStudentId;
-  const amount = Number($("paymentAmount").value);
-  const paymentDate = $("paymentDate").value;
-  const method = $("paymentMethod").value;
-  const note = $("paymentNote").value.trim();
-
-  if (!id) {
-    showMessage("feeMessage", "Please select a student.");
-    return;
-  }
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    showMessage("feeMessage", "Payment amount must be greater than zero.");
-    return;
-  }
-
-  const pendingFee = Number(currentFeeData?.pendingFee) || 0;
-
-  if (amount > pendingFee) {
-    showMessage(
-      "feeMessage",
-      `Payment cannot exceed the pending fee of ${formatINR(pendingFee)}.`
-    );
-    return;
-  }
-
-  if (!paymentDate) {
-    showMessage("feeMessage", "Please select the payment date.");
-    return;
-  }
-
-  const button = $("recordPaymentButton");
-  button.disabled = true;
-
-  try {
-    const data = await api(
-      `/api/admin/students/${encodeURIComponent(id)}/fees/payments`,
-      {
-        method: "POST",
-        body: JSON.stringify({ amount, paymentDate, method, note })
+    
+      if (!Number.isFinite(totalFee) || totalFee < 0) {
+        showMessage("feeMessage", "Enter a valid total fee.");
+        return;
       }
-    );
-
-    currentFeeData = data.fees;
-    renderFeeDetails();
-
-    $("feePaymentForm").reset();
+    
+      try {
+        const data = await api(`/api/admin/students/${encodeURIComponent(id)}/fees`, {
+          method: "PUT",
+          body: JSON.stringify({ totalFee })
+        });
+    
+        currentFeeData = data.fees;
+        renderFeeDetails();
+        showMessage("feeMessage", data.message || "Total fee saved.", "success");
+      } catch (error) {
+        showMessage("feeMessage", error.message);
+      }
+    });
+    
     $("paymentDate").value = localDateInputValue();
-    $("paymentMethod").value = "Cash";
-
-    showMessage(
-      "feeMessage",
-      data.message || "Payment recorded successfully.",
-      "success"
-    );
-  } catch (error) {
-    showMessage("feeMessage", error.message);
-  } finally {
-    button.disabled = (Number(currentFeeData?.pendingFee) || 0) <= 0;
-  }
-});
-
+    
+    $("feePaymentForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      hideMessage("feeMessage");
+    
+      const id = selectedFeeStudentId;
+      const amount = Number($("paymentAmount").value);
+      const paymentDate = $("paymentDate").value;
+      const method = $("paymentMethod").value;
+      const note = $("paymentNote").value.trim();
+    
+      if (!id) {
+        showMessage("feeMessage", "Please select a student.");
+        return;
+      }
+    
+      if (!Number.isFinite(amount) || amount <= 0) {
+        showMessage("feeMessage", "Payment amount must be greater than zero.");
+        return;
+      }
+    
+      const totalFee = Number(currentFeeData?.totalFee) || 0;
+      const paidAmount = Number(currentFeeData?.paidAmount) || 0;
+      const pendingFee = Math.max(0, totalFee - paidAmount);
+    
+      if (amount > pendingFee) {
+        showMessage("feeMessage", `Payment cannot exceed the pending fee of ${formatINR(pendingFee)}.`);
+        return;
+      }
+    
+      if (!paymentDate) {
+        showMessage("feeMessage", "Please select the payment date.");
+        return;
+      }
+    
+      const button = $("recordPaymentButton");
+      button.disabled = true;
+    
+      try {
+        const data = await api(
+          `/api/admin/students/${encodeURIComponent(id)}/fees/payments`,
+          {
+            method: "POST",
+            body: JSON.stringify({ amount, paymentDate, method, note })
+          }
+        );
+    
+        currentFeeData = data.fees;
+        renderFeeDetails();
+    
+        $("feePaymentForm").reset();
+        $("paymentDate").value = localDateInputValue();
+        $("paymentMethod").value = "Cash";
+    
+        showMessage("feeMessage", data.message || "Payment recorded successfully.", "success");
+      } catch (error) {
+        showMessage("feeMessage", error.message);
+      } finally {
+        const total = Number(currentFeeData?.totalFee) || 0;
+        const paid = Number(currentFeeData?.paidAmount) || 0;
+        button.disabled = Math.max(0, total - paid) <= 0;
+      }
+    });
+    
     $("passwordForm").addEventListener("submit", async event => {
       event.preventDefault();
       hideMessage("passwordMessage");
-
+    
       const currentPassword = $("currentPassword").value;
       const newPassword = $("newPassword").value;
       const confirmPassword = $("confirmPassword").value;
-
+    
       if (newPassword.length < 8) {
         showMessage("passwordMessage", "New password must be at least 8 characters.");
         return;
       }
-
+    
       if (newPassword !== confirmPassword) {
         showMessage("passwordMessage", "New password and confirmation do not match.");
         return;
       }
-
+    
       try {
         const data = await api("/api/admin/change-password", {
           method: "POST",
           body: JSON.stringify({ currentPassword, newPassword })
         });
-
+    
         showMessage("passwordMessage", data.message || "Password updated.", "success");
         $("passwordForm").reset();
       } catch (error) {
         showMessage("passwordMessage", error.message);
       }
     });
-
+    
     checkSession();
-  </script>
+    </script>
 </body>
 </html>
