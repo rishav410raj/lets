@@ -1666,3 +1666,109 @@ h3{font-size:1.25rem}
 .gallery-arrow {
   font-size: 20px;
 }
+
+/* =====================================
+   RESPONSIVE MOBILE NAVBAR
+===================================== */
+
+/* Hide hamburger on desktop */
+.menu-btn {
+  display: none;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .header .nav {
+    gap: 12px;
+  }
+
+  .header .menu {
+    gap: 12px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .header .nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 68px;
+    gap: 12px;
+  }
+
+  /* Hamburger button */
+  .menu-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .menu-btn span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: #ffffff;
+    border-radius: 3px;
+  }
+
+  /* Hide menu by default */
+  .header .menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 12px 16px;
+    background: #0b2d5c;
+    border: none;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+  }
+
+  /* Open menu using existing JavaScript */
+  .header .menu.open {
+    display: flex;
+  }
+
+  /* Navigation links */
+  .header .menu > a:not(.btn) {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    color: #ffffff;
+    white-space: normal;
+  }
+
+  /* Call Now button */
+  .header .menu .btn {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    margin-top: 6px;
+    padding: 12px 20px;
+  }
+}
